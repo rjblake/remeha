@@ -2,11 +2,11 @@
 Connect ESP8266 directly to Remeha CV/Boiler to read data using PHP.
 
 The current PHP code uses an Adafruit Huzzah ESP8266 to connect to and read data from a Remeha Calenta 40C boiler. The Huzzah ESP8266 was chosen as it is a 5VDC device and does not require any level shifter or additional circuits to deal with the higher voltage. It connect to the Remeha X13 connector using a 4P4C (RJ10) connector with the following pinouts:
-Remeha............>ESP8266
-Pin1 (GND)........>GND
-Pin2 (RX).........>TX
-Pin3 (TX).........>RX
-Pin4 (VDC)........>VCC+
+1. Remeha............>ESP8266
+2. Pin1 (GND)........>GND
+3. Pin2 (RX).........>TX
+4. Pin3 (TX).........>RX
+5. Pin4 (VDC)........>VCC+
 
 The ESP8266 is running and has been tested with the ESP-Link firmware/software loaded (also on GitHub)
 
@@ -21,4 +21,4 @@ Currently this is a 'read only' script and provides the following functionality:
 To do:
 1. Add code to collect other parameters from the Calenta (e.g. burner hours, pump hours, etc.) 
 2. Add code to adjust/change parameters (e.g. pump running time, control setpoint, etc.)
-3. ...basically provide similar/same functionality as the Remeha Recom software - but using a cheap ESP8266 and web interface
+3. ...basically provide similar/same functionality as the Remeha Recom software - but using a cheap ESP8266 and web interface.
