@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 // Uncomment to report Errors for Debug purposes
 // error_reporting(E_ALL);
 
@@ -7,6 +7,49 @@
 ** Codes are for a Remeha Calenta 40C **
 ****************************************
 */
+
+// Define Variables that will be used
+// Hex string to get data values from Calenta - 02 FE 01 05 08 02 01 69 AB 03 - does not include counters
+// Change as required for specific model (Calenta, avanta, etc...)
+$remeha1=chr(0x02).chr(0xFE).chr(0x01).chr(0x05).chr(0x08).chr(0x02).chr(0x01).chr(0x69).chr(0xAB).chr(0x03);
+
+$ini_array = parse_ini_file("remeha.ini");
+// print_r($ini_array);
+$ESPIPAddress = ($ini_array['ESPIPAddress']);
+$ESPPort = ($ini_array['ESPPort']);	
+
+// Start of connect to Remeha & get info
+// Open connection to ESP connected to Calenta
+$fp=fsockopen($ESPIPAddress,$ESPPort, $errno, $errstr, 30);
+if (!$fp) 
+	{
+	echo "ERROR opening port<br />";
+	echo $errno;
+	echo $errstr;
+	} 
+else
+	{
+	echo "=============================================<br />";
+	echo "Connected to port<br />";
+	echo "Sending request...<br />";
+   	// Send the Hex String to the Remeha
+   	fputs($fp,$remeha1);
+	echo "Request sent, reading answer...<br />";
+	$data="";
+	$data=fread($fp, 180);
+	echo "Answer read<br />";
+	echo "=============================================<br />";	
+	$output = hex_dump($data);
+	echo "<br />=============================================<br /><br />";
+  	fclose($fp);
+	echo "*********************<br />";	
+	echo " ** Connection closed **<br />";
+	echo "*********************<br />";
+	echo "$i<br />";
+	} 
+
+// END of connect to Remeha & get info
+
 
 function hex_dump($data, $newline="<br />")
 {
@@ -35,6 +78,15 @@ function hex_dump($data, $newline="<br />")
 	echo "Hex string CRC Value: $hexstrCRC<br />";		
 	
 	$crcCalc = crc16_modbus($hexstrPayload);
+
+	// Write the contents to the file
+	$ini_array = parse_ini_file("remeha.ini");
+	$file = ($ini_array['file']);
+	date_default_timezone_set('Europe/Amsterdam');
+	$date = date_create();
+	$datatowrite = date_format($date, 'Y-m-d H:i:s') . ' 02 ' . $hexstrPayload . ' ' . $hexstrCRC . ' ' .'03' . "\n";
+	// echo "$datatowrite<br />";
+	file_put_contents($file, $datatowrite, FILE_APPEND);		
 	
 	if ($hexstrCRC == $crcCalc)
 		{
@@ -43,7 +95,7 @@ function hex_dump($data, $newline="<br />")
 	else
 		{
 		echo "CRC ERROR!!!  $hexstrCRC != $crcCalc <br />";
-		exit("CRC does not compute");
+		exit("CRC does not compute");							#exit as CRC not correct and data likely corrupted
 		}
 	
 // Uncomment to add full response to an Array 
@@ -356,81 +408,82 @@ function hex_dump($data, $newline="<br />")
 
 // Update Domoticz Devices with collected values
 // DomoticZ Device ID's
-  	$flowtemperatureIDX = 93;			#Temperature
-	$returntemperatureIDX = 94;			#Temperature
-  	$caloriftemperatureIDX = 95;		#Temperature
-  	$outsidetemperatureIDX = 96;		#Temperature
-  	$controltemperatureIDX = 97;		#Temperature
-  	$internalsetpointIDX = 98;			#Temperature
-	$chsetpointIDX = 99;				#Temperature
-	$dhwsetpointIDX = 100; 				#Temperature
-	$roomtemperatureIDX = 101;			#Temperature
-	$thermostatIDX = 102; 				#Temperature
-	$boilerctrltemperatureIDX = 103;	#Temperature
-	$fanspeedsetpointIDX = 104;			#Custom Sensor - Axis Label "RPM"
-  	$fanspeedIDX = 105;					#Custom Sensor - Axis Label "RPM"
-  	$ionisationcurrentIDX = 106;		#Custom Sensor - Axis Label "microamps"
-  	$pumppowerIDX = 107;				#Percentage 
-  	$pressureIDX = 108;					#Pressure (Bar)
-  	$dhwflowrateIDX = 109;				#Waterflow
-  	$requiredoutputIDX = 110;			#Percentage
-  	$availablepowerIDX = 111;			#Percentage
-  	$actualpowerIDX = 112;				#Percentage
-	$modulationdemandIDX = 113;			#Text
-	$ignitionIDX = 114;					#Text
-	$gasIDX = 115;						#Text
-	$ionisationIDX = 116;				#Text
-	$pumpIDX = 117;						#Text
-	$threewayvalveIDX = 118;			#Text
-	$DHWRequestIDX = 119;				#Text
-	$DHWEcoIDX = 120;					#Text
-	$stateIDX = 121;					#Text
+	$flowtemperatureIDX = ($ini_array['flowtemperatureIDX']);
+	$returntemperatureIDX = ($ini_array['returntemperatureIDX']);
+  	$caloriftemperatureIDX = ($ini_array['calorifiertemperatureIDX']);
+  	$outsidetemperatureIDX = ($ini_array['outsidetemperatureIDX']);
+  	$controltemperatureIDX = ($ini_array['controltemperatureIDX']);
+  	$internalsetpointIDX = ($ini_array['internalsetpointIDX']);
+	$chsetpointIDX = ($ini_array['chsetpointIDX']);
+	$dhwsetpointIDX = ($ini_array['dhwsetpointIDX']);
+	$roomtemperatureIDX = ($ini_array['roomtemperatureIDX']);
+	$thermostatIDX = ($ini_array['thermostatIDX']);
+	$boilerctrltemperatureIDX = ($ini_array['boilerctrltemperatureIDX']);
+	$fanspeedsetpointIDX = ($ini_array['fanspeedsetpointIDX']);
+  	$fanspeedIDX = ($ini_array['fanspeedIDX']);
+  	$ionisationcurrentIDX = ($ini_array['ionisationcurrentIDX']);
+  	$pumppowerIDX = ($ini_array['pumppowerIDX']);
+  	$pressureIDX = ($ini_array['pressureIDX']);
+  	$dhwflowrateIDX = ($ini_array['dhwflowrateIDX']);
+  	$requiredoutputIDX = ($ini_array['requiredoutputIDX']);
+  	$availablepowerIDX = ($ini_array['availablepowerIDX']);
+  	$actualpowerIDX = ($ini_array['actualpowerIDX']);
+	$modulationdemandIDX = ($ini_array['modulationdemandIDX']);
+	$ignitionIDX = ($ini_array['ignitionIDX']);
+	$gasIDX = ($ini_array['gasIDX']);
+	$ionisationIDX = ($ini_array['ionisationIDX']);
+	$pumpIDX = ($ini_array['pumpIDX']);
+	$threewayvalveIDX = ($ini_array['threewayvalveIDX']);
+	$dhwrequestIDX = ($ini_array['dhwrequestIDX']);
+	$dhwecoIDX = ($ini_array['dhwecoIDX']);
+	$stateIDX = ($ini_array['stateIDX']);
 // end Device ID's
 
 // Set variables for cURL updates & call udevice function to update
-	$DOMOflowtemperature = udevice($flowtemperatureIDX,0,$flowtemperature);
-	$DOMOreturntemperature = udevice($returntemperatureIDX,0,$returntemperature);
- 	$DOMOcaloriftemperature = udevice($caloriftemperatureIDX,0,$caloriftemperature);
-	$DOMOoutsidetemperature = udevice($outsidetemperatureIDX,0,$outsidetemperature);
-	$DOMOcontroltemperature = udevice($controltemperatureIDX,0,$controltemperature);
-	$DOMOinternalsetpoint = udevice($internalsetpointIDX,0,$internalsetpoint);
-	$DOMOchsetpoint = udevice($chsetpointIDX,0,$chsetpoint);
-	$DOMOdhwsetpoint = udevice($dhwsetpointIDX,0,$dhwsetpoint);
-	$DOMOroomtemperature = udevice($roomtemperatureIDX,0,$roomtemperature);
-	$DOMOthermostat = udevice($thermostatIDX,0,$thermostat);
-	$DOMOboilerctrltemp = udevice($boilerctrltemperatureIDX,0,$boilerctrltemperature);
-	$DOMOfanspeedsetpoint = udevice($fanspeedsetpointIDX,0,$fanspeedsetpoint);
-	$DOMOfanSpeed = udevice($fanspeedIDX,0,$fanspeed);
-	$DOMOionisationCurent = udevice($ionisationcurrentIDX,0,$ionisationcurrent);
-	$DOMOpumppower = udevice($pumppowerIDX,0,$pumppower);
-	$DOMOpressure = udevice($pressureIDX,0,$pressure);
-	$DOMOdhwflowrate = udevice($dhwflowrateIDX,0,$dhwflowrate);
-	$DOMOrequiredoutput = udevice($requiredoutputIDX,0,$requiredoutput);
-	$DOMOavailablepower = udevice($availablepowerIDX,0,$availablepower);
-	$DOMOactualpower = udevice($actualpowerIDX,0,$actualpower);
-	$DOMOmodulationdemand = udevice($modulationdemandIDX,0,$modrequest1);
-	$DOMOignition = udevice($ignitionIDX,0,$ignition2);
-	$DOMOgas = udevice($gasIDX,0,$gasvalve0);
-	$DOMOionisation = udevice($ionisationIDX,0,$ionisation2);
-	$DOMOpump = udevice($pumpIDX,0,$pump0);
-	$DOMOthreewayvalve = udevice($threewayvalveIDX,0,$threewayvalve3);
-	$DOMODHWRequest = udevice($DHWRequestIDX,0,$modrequest7);
-	$DOMODHWEco = udevice($DHWEcoIDX,0,$modrequest4);
-	$DOMOstatus = udevice($stateIDX,0,str_replace(' ', '%20', $state));
+	$DOMOIPAddress = ($ini_array['DOMOIPAddress']);
+	$DOMOPort = ($ini_array['DOMOPort']);
+
+	$DOMOflowtemperature = udevice($flowtemperatureIDX,0,$flowtemperature,$DOMOIPAddress,$DOMOPort);
+	$DOMOreturntemperature = udevice($returntemperatureIDX,0,$returntemperature,$DOMOIPAddress,$DOMOPort);
+ 	$DOMOcaloriftemperature = udevice($caloriftemperatureIDX,0,$caloriftemperature,$DOMOIPAddress,$DOMOPort);
+	$DOMOoutsidetemperature = udevice($outsidetemperatureIDX,0,$outsidetemperature,$DOMOIPAddress,$DOMOPort);
+	$DOMOcontroltemperature = udevice($controltemperatureIDX,0,$controltemperature,$DOMOIPAddress,$DOMOPort);
+	$DOMOinternalsetpoint = udevice($internalsetpointIDX,0,$internalsetpoint,$DOMOIPAddress,$DOMOPort);
+	$DOMOchsetpoint = udevice($chsetpointIDX,0,$chsetpoint,$DOMOIPAddress,$DOMOPort);
+	$DOMOdhwsetpoint = udevice($dhwsetpointIDX,0,$dhwsetpoint,$DOMOIPAddress,$DOMOPort);
+	$DOMOroomtemperature = udevice($roomtemperatureIDX,0,$roomtemperature,$DOMOIPAddress,$DOMOPort);
+	$DOMOthermostat = udevice($thermostatIDX,0,$thermostat,$DOMOIPAddress,$DOMOPort);
+	$DOMOboilerctrltemp = udevice($boilerctrltemperatureIDX,0,$boilerctrltemperature,$DOMOIPAddress,$DOMOPort);
+	$DOMOfanspeedsetpoint = udevice($fanspeedsetpointIDX,0,$fanspeedsetpoint,$DOMOIPAddress,$DOMOPort);
+	$DOMOfanSpeed = udevice($fanspeedIDX,0,$fanspeed,$DOMOIPAddress,$DOMOPort);
+	$DOMOionisationCurent = udevice($ionisationcurrentIDX,0,$ionisationcurrent,$DOMOIPAddress,$DOMOPort);
+	$DOMOpumppower = udevice($pumppowerIDX,0,$pumppower,$DOMOIPAddress,$DOMOPort);
+	$DOMOpressure = udevice($pressureIDX,0,$pressure,$DOMOIPAddress,$DOMOPort);
+	$DOMOdhwflowrate = udevice($dhwflowrateIDX,0,$dhwflowrate,$DOMOIPAddress,$DOMOPort);
+	$DOMOrequiredoutput = udevice($requiredoutputIDX,0,$requiredoutput,$DOMOIPAddress,$DOMOPort);
+	$DOMOavailablepower = udevice($availablepowerIDX,0,$availablepower,$DOMOIPAddress,$DOMOPort);
+	$DOMOactualpower = udevice($actualpowerIDX,0,$actualpower,$DOMOIPAddress,$DOMOPort);
+	$DOMOmodulationdemand = udevice($modulationdemandIDX,0,$modrequest1,$DOMOIPAddress,$DOMOPort);
+	$DOMOignition = udevice($ignitionIDX,0,$ignition2,$DOMOIPAddress,$DOMOPort);
+	$DOMOgas = udevice($gasIDX,0,$gasvalve0,$DOMOIPAddress,$DOMOPort);
+	$DOMOionisation = udevice($ionisationIDX,0,$ionisation2,$DOMOIPAddress,$DOMOPort);
+	$DOMOpump = udevice($pumpIDX,0,$pump0,$DOMOIPAddress,$DOMOPort);
+	$DOMOthreewayvalve = udevice($threewayvalveIDX,0,$threewayvalve3,$DOMOIPAddress,$DOMOPort);
+	$DOMOdhwrequest = udevice($dhwrequestIDX,0,$modrequest7,$DOMOIPAddress,$DOMOPort);
+	$DOMOdhweco = udevice($dhwecoIDX,0,$modrequest4,$DOMOIPAddress,$DOMOPort);
+	$DOMOstatus = udevice($stateIDX,0,str_replace(' ', '%20', $state),$DOMOIPAddress,$DOMOPort);
 // end set variables for cURL updates
 
 }
 
 // Function to update Domoticz using cURL
 //
-function udevice($idx,$nvalue,$svalue) 
+function udevice($idx,$nvalue,$svalue,$DOMOIPAddress,$DOMOPort) 
 {
-	//IP Address & Port of Domoticz Server - NOT ESP8266 IP & Port	
-	$DOMOIPAddress = "192.168.178.10";
-	$DOMOPort = 8084;
 
 // Comment if you don't want to update Domoticz	
 	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 	curl_setopt($ch, CURLOPT_URL, "http://$DOMOIPAddress:$DOMOPort/json.htm?type=command&param=udevice&idx=$idx&nvalue=$nvalue&svalue=$svalue");
 	curl_exec($ch);
 	curl_close($ch);
@@ -441,49 +494,8 @@ function udevice($idx,$nvalue,$svalue)
 	
 // Debug cURL string
 	// echo "Debug Only - No db update - http://$DOMOIPAddress:$DOMOPort/json.htm?type=command&param=udevice&idx=$idx&nvalue=$nvalue&svalue=$svalue<br />";
-
+	// echo "IDX: $idx Value: $svalue<br />";
 }
-
-// Hex string to get data values from Calenta - 02 FE 01 05 08 02 01 69 AB 03 - does not include counters
-// Change as required for specific model (Calenta, avanta, etc...)
-//
-$remeha1=chr(0x02).chr(0xFE).chr(0x01).chr(0x05).chr(0x08).chr(0x02).chr(0x01).chr(0x69).chr(0xAB).chr(0x03);
-
-// Open connection to ESP connected to Calenta
-// Change to your own IP Address and Port
-//
-$ESPIPAddress = "192.168.178.91";
-$ESPPort = 23;
-$fp=fsockopen($ESPIPAddress,$ESPPort, $errno, $errstr, 30);
-if (!$fp) 
-	{
-	echo "ERROR opening port<br />";
-	echo $errno;
-	echo $errstr;
-	} 
-else 
-	{
-	echo "=============================================<br />";
-	echo "Connected to port<br />";
-   	echo "Sending request...<br />";
-   	// Send the Hex String to the Remeha
-   	fputs($fp,$remeha1);
-	echo "Request sent, reading answer...<br />";
-   	
-   	$data="";
-   	$data=fread($fp, 180);
-   
-	echo "Answer read<br />";
-	echo "=============================================<br />";	
-	$output = hex_dump($data);
-	echo "<br />=============================================<br />";
-	
-  	echo "<br />";
-  	fclose($fp);
-	echo "*********************<br />";	
-	echo " ** Connection closed **<br />";
-	echo "*********************<br />";	
-	} 
 
 // Function to work out BIT flags
 // 
