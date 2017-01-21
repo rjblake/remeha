@@ -197,15 +197,13 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$valves = $decode["45"];
 	$pump = $decode["46"];
 	$state = $decode["47"];
-	$substate = "";
-	$substate .= $decode["50"];  
-	$pressure = "";
-	$pressure .= $decode["56"];
-	$controltemperature = "";
-	$controltemperature .= $decode["59"];
+	$lockout = $decode["48"];
+	$blocking = $decode["49"];
+	$substate = $decode["50"];  
+	$pressure = $decode["56"];
+	$controltemperature = $decode["59"];
 	$controltemperature .= $decode["58"];
-	$dhwflowrate = "";
-	$dhwflowrate .= $decode["61"];
+	$dhwflowrate = $decode["61"];
 	$dhwflowrate .= $decode["60"];
 // END Sample Data Info
 
@@ -467,10 +465,94 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	elseif ($substate == 999) {$substate = "999:Unkown Sub-State";}
 	elseif ($substate == 255) {$substate = "255:Reset wait time";}
 	else {$substate = "Unknown Sub-State";}
-	
 	// Combine State & Sub-State to a single variable
 	$state = $state . ' / ' . $substate;
-// END mapping of Status & Sub-Status values
+
+	// Locking Codes
+	$lockout = hexdec($lockout);
+	if ($lockout == 255) {$lockout = "No Locking (Locking 255)";}
+	elseif ($lockout == 0) {$lockout = "PSU not connected (Locking 0)";}	
+	elseif ($lockout == 1) {$lockout = "SU parameter fault (Locking 1)";}
+	elseif ($lockout == 2) {$lockout = "T HeatExch. closed (Locking 2)";}
+	elseif ($lockout == 3) {$lockout = "T HeatExch. open (Locking 3)";}
+	elseif ($lockout == 4) {$lockout = "T HeatExch. < min. (Locking 4)";}
+	elseif ($lockout == 5) {$lockout = "T HeatExch. > max. (Locking 5)";}
+	elseif ($lockout == 6) {$lockout = "T Return closed (Locking 6)";}
+	elseif ($lockout == 7) {$lockout = "T Return open (Locking 7)";}
+	elseif ($lockout == 8) {$lockout = "T Return < min. (Locking 8)";}
+	elseif ($lockout == 9) {$lockout = "T Return > max. (Locking 9)";}
+	elseif ($lockout == 10) {$lockout = "dT(HeatExch,Return) > max (Locking 10)";}
+	elseif ($lockout == 11) {$lockout = "dT(Return,HeatExch) > max (Locking 11)";}
+	elseif ($lockout == 12) {$lockout = "STB activated (Locking 12)";}
+	elseif ($lockout == 13) {$lockout = "- (Locking 13)";}
+	elseif ($lockout == 14) {$lockout = "5x Unsuccessful start (Locking 14)";}
+	elseif ($lockout == 15) {$lockout = "5x VPS test failure (Locking 15)";}
+	elseif ($lockout == 16) {$lockout = "False flame (Locking 16)";}
+	elseif ($lockout == 17) {$lockout = "SU Gasvalve driver error (Locking 17)";}
+	elseif ($lockout == 32) {$lockout = "T Flow closed (Locking 32)";}
+	elseif ($lockout == 33) {$lockout = "T Flow open (Locking 33)";}
+	elseif ($lockout == 34) {$lockout = "Fan out of control range (Locking 34)";}
+	elseif ($lockout == 35) {$lockout = "Return over Flow temp. (Locking 35)";}
+	elseif ($lockout == 36) {$lockout = "5x Flame loss (Locking 36)";}
+	elseif ($lockout == 37) {$lockout = "SU communication (Locking 37)";}
+	elseif ($lockout == 38) {$lockout = "SCU-S communication (Locking 38)";}
+	elseif ($lockout == 39) {$lockout = "BL input as lockout (Locking 39)";}
+	elseif ($lockout == 40) {$lockout = "- (Locking 40)";}
+	elseif ($lockout == 41) {$lockout = "PCB temperature (Locking 41)";}
+	elseif ($lockout == 42) {$lockout = "Low water pressure (Locking 42)";}
+	elseif ($lockout == 43) {$lockout = "No gradient (Locking 43)";}
+	elseif ($lockout == 44) {$lockout = "De-air test failed (Locking 44)";}
+	elseif ($lockout == 50) {$lockout = "External PSU timeout (Locking 50)";}
+	elseif ($lockout == 51) {$lockout = "Onboard PSU timeout (Locking 51)";}
+	elseif ($lockout == 52) {$lockout = "GVC lockout (Locking 52)";}
+	elseif ($lockout == 999) {$lockout = "Unknown locking code";}
+
+	// Blocking Codes
+	$blocking = hexdec($blocking);
+	if ($blocking == 255) {$blocking = "No Blocking (Blocking 255)";}
+	elseif ($blocking == 0) {$blocking = "PCU parameter fault (Blocking 0)";}
+	elseif ($blocking == 1) {$blocking = "T Flow &gt; max.(Blocking 1)";}
+	elseif ($blocking == 2) {$blocking = "dT/s Flow > max. (Blocking 2)";}
+	elseif ($blocking == 3) {$blocking = "T HeatExch > max.(Blocking 3)";}
+	elseif ($blocking == 4) {$blocking = "dT/s HeatExch > max.(Blocking 4)";}
+	elseif ($blocking == 5) {$blocking = "dT(heatExch,Return) > max. (Blocking 5)";}
+	elseif ($blocking == 6) {$blocking = "dT(Flow,HeatExch) > max.(Blocking 6)";}
+	elseif ($blocking == 7) {$blocking = "dT(Flow,Return) > max.(Blocking 7)";}
+	elseif ($blocking == 8) {$blocking = "No release signal(Blocking 8)";}
+	elseif ($blocking == 9) {$blocking = "L-N swept(Blocking 9)";}
+	elseif ($blocking == 10) {$blocking = "Blocking signal ex frost(Blocking 10)";}
+	elseif ($blocking == 11) {$blocking = "Blocking signal inc frost(Blocking 11)";}
+	elseif ($blocking == 12) {$blocking = "HMI not connected(Blocking 12)";}
+	elseif ($blocking == 13) {$blocking = "SCU communication(Blocking 13)";}
+	elseif ($blocking == 14) {$blocking = "Min. water pressure(Blocking 14)";}
+	elseif ($blocking == 15) {$blocking = "Min. gas pressure(Blocking 15)";}
+	elseif ($blocking == 16) {$blocking = "Ident. SU mismatch(Blocking 16)";}
+	elseif ($blocking == 17) {$blocking = "Ident. dF/dU table error(Blocking 17)";}
+	elseif ($blocking == 18) {$blocking = "Ident. PSU mismatch(Blocking 18)";}
+	elseif ($blocking == 19) {$blocking = "Ident. dF/dU needed(Blocking 19)";}
+	elseif ($blocking == 20) {$blocking = "Identification running(Blocking 20)";}
+	elseif ($blocking == 21) {$blocking = "SU communications lost(Blocking 21)";}
+	elseif ($blocking == 22) {$blocking = "Flame lost(Blocking 22)";}
+	elseif ($blocking == 23) {$blocking = "-(Blocking 23)";}
+	elseif ($blocking == 24) {$blocking = "VPS test failed(Blocking 24)";}
+	elseif ($blocking == 25) {$blocking = "Internal SU error(Blocking 25)";}
+	elseif ($blocking == 26) {$blocking = "Calorifier sensor error(Blocking 26)";}
+	elseif ($blocking == 27) {$blocking = "DHW in sensor error(Blocking 27)";}
+	elseif ($blocking == 28) {$blocking = "Reset in progress...(Blocking 28)";}
+	elseif ($blocking == 29) {$blocking = "GVC parameter changed(Blocking 29)";}
+	elseif ($blocking == 30) {$blocking = " -(Blocking 30)";}
+	elseif ($blocking == 31) {$blocking = "31:-Flue gas temp limit exceeded";}
+	elseif ($blocking == 32) {$blocking = "32:-Flue gas sensor error";}
+	elseif ($blocking == 33) {$blocking = "33:-Internal PCU fault";}
+	elseif ($blocking == 34) {$blocking = "34:-Diff between Tfg1 and Tfg2";}
+	elseif ($blocking == 35) {$blocking = "35:-Flue gas temp 5* burner stop";}
+	elseif ($blocking == 36) {$blocking = "36:-Flow temp 5* burner stop";}
+	elseif ($blocking == 41) {$blocking = "41: Dt (Tf,Tr)  deair failed";}
+	elseif ($blocking == 43) {$blocking = "43:Grad. low at burnerstart";}
+	elseif ($blocking == 44) {$blocking = "44: DeltaT (Tf, Tr) too high";}
+	elseif ($blocking == 45) {$blocking = "45: Air pressure too high";}
+	elseif ($blocking == 999) {$blocking = "Unknown blocking code";}
+// END mapping of Status, Sub-Status, Lockout & Blocking values
 
 // START Display Sample Data as Captured
 	echo str_repeat("=", 80) . "$newline";
@@ -533,6 +615,9 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	echo "Heat Demand from DHW[7]: $heatrequest7$newline";
 	echo "$newline";
 	echo "Combined State/Sub-State: $state$newline";
+	echo "$newline";
+	echo "Lockout E: $lockout$newline";
+	echo "Blocking b: $blocking$newline";
 	echo str_repeat("=", 80) . "$newline";
 // END Display Sample Data as Captured
 
@@ -568,6 +653,8 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$dhwrequestIDX = $ini_array['dhwrequestIDX'];
 	$dhwecoIDX = $ini_array['dhwecoIDX'];
 	$stateIDX = $ini_array['stateIDX'];
+	$lockoutIDX = $ini_array['lockoutIDX'];
+	$blockingIDX = $ini_array['blockingIDX'];		
 // END Device ID's
 
 // Set variables for cURL updates & call udevice function to update
@@ -606,6 +693,8 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$DOMOdhwrequest = udevice($dhwrequestIDX, 0, $heatrequest7, $DOMOIPAddress, $DOMOPort, $Username, $Password);
 	$DOMOdhweco = udevice($dhwecoIDX, 0, $heatrequest4, $DOMOIPAddress, $DOMOPort, $Username, $Password);
 	$DOMOstatus = udevice($stateIDX, 0, str_replace(' ', '%20', $state), $DOMOIPAddress, $DOMOPort, $Username, $Password);
+	$DOMOstatus = udevice($lockoutIDX, 0, str_replace(' ', '%20', $lockout), $DOMOIPAddress, $DOMOPort, $Username, $Password);
+	$DOMOstatus = udevice($blockingIDX, 0, str_replace(' ', '%20', $blocking), $DOMOIPAddress, $DOMOPort, $Username, $Password);		
 // END set variables for cURL updates
 }
 
