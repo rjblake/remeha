@@ -1,12 +1,6 @@
 <?php
-// this will reset the ESP8266
-// file_get_contents("http://192.168.178.91//reset");
 // Uncomment to report Errors for Debug purposes
 // error_reporting(E_ALL);
-
-// ESP8266 reset command
-//
-// file_get_contents("http://" . $ESPIPAddress . "/log/reset");
 
 $sample_cycle = 0;
 $retries = 3;
@@ -24,27 +18,16 @@ $newline = $ini_array['newline'];
 	if ($newline == "terminal"){$newline = "\n";}
 	else {$newline = "<br />";}
 $deg_symbol = $ini_array['deg_symbol'];
-$clr_screen = hex2bin($ini_array['clr_screen']).'H'.hex2bin($ini_array['clr_screen']).'J';
-$remeha_id = hex2bin($ini_array['remeha_id']);
 $remeha_sample = hex2bin($ini_array['remeha_sample']);
 $remeha_counter1 = hex2bin($ini_array['remeha_counter1']);
 $remeha_counter2 = hex2bin($ini_array['remeha_counter2']);
 $remeha_counter3 = hex2bin($ini_array['remeha_counter3']);
 $remeha_counter4 = hex2bin($ini_array['remeha_counter4']);
-$remeha_param1 = hex2bin($ini_array['remeha_param1']);
-$remeha_param2 = hex2bin($ini_array['remeha_param2']);
-$remeha_param3 = hex2bin($ini_array['remeha_param3']);
-$remeha_param4 = hex2bin($ini_array['remeha_param4']);
-$remeha_param5 = hex2bin($ini_array['remeha_param5']);
-$remeha_param6 = hex2bin($ini_array['remeha_param6']);
-$remeha_param7 = hex2bin($ini_array['remeha_param7']);
-$remeha_param8 = hex2bin($ini_array['remeha_param8']);
 
 while (true) #infinite loop until false
 {
 	if ($sample_cycle < $sample_loops)
 		{
-		// $fp=fsockopen($ESPIPAddress, $ESPPort, $errno, $errstr, 5);
 		$fp = connect_to_esp($ESPIPAddress, $ESPPort, $retries, $newline);
 		if (!$fp) 
 			{
@@ -53,15 +36,16 @@ while (true) #infinite loop until false
 		else
 			{
 			echo chr(27).chr(91).'H'.chr(27).chr(91).'J';
-			stream_set_timeout($fp, 5);			
+			stream_set_timeout($fp, 5);
 			// Collect Sample Data Info
 			conditional_echo(str_repeat("=", 166) . "$newline", $echo_flag);
 			conditional_echo("Connected to $ESPIPAddress:$ESPPort$newline", $echo_flag);
 			conditional_echo("Sending request...$newline", $echo_flag);
 			fwrite($fp,$remeha_sample, 10);
-			$data_sample="";	
-			$data_sample=bin2hex(fread($fp, 148));
-			conditional_echo("Sample Data read: $data_sample$newline", $echo_flag);
+			$data_sample = "";	
+			$data_sample = bin2hex(fread($fp, 148));
+			$data_sampleU = strtoupper($data_sample);
+			conditional_echo("Sample Data read: $data_sampleU$newline", $echo_flag);
 			$output = sample_data_dump($data_sample, $echo_flag, $newline);
 			fclose($fp);
 			sleep($sleeptime);
@@ -70,7 +54,6 @@ while (true) #infinite loop until false
 		}
 	else
 		{
-		// $fp=fsockopen($ESPIPAddress, $ESPPort, $errno, $errstr, 5);
 		$fp = connect_to_esp($ESPIPAddress, $ESPPort, $retries, $newline);
 		if (!$fp) 
 			{
@@ -85,30 +68,35 @@ while (true) #infinite loop until false
 			conditional_echo("Connected to $ESPIPAddress:$ESPPort$newline", $echo_flag);
 			conditional_echo("Sending request...$newline", $echo_flag);
 			fwrite($fp,$remeha_counter1, 10);
-			$data_counter1="";
-			$data_counter1=bin2hex(fread($fp, 52));
-			conditional_echo("Counter Data-1 read: $data_counter1$newline", $echo_flag);
+			$data_counter1 = "";
+			$data_counter1 = bin2hex(fread($fp, 52));
+			$data_counter1U = strtoupper($data_counter1);
+			conditional_echo("Counter Data-1 read: $data_counter1U$newline", $echo_flag);
 			usleep($nanosleeptime);
 
 			fwrite($fp,$remeha_counter2, 10);
-			$data_counter2="";
-			$data_counter2=bin2hex(fread($fp, 52));
-			conditional_echo("Counter Data-2 read: $data_counter2$newline", $echo_flag);
+			$data_counter2 = "";
+			$data_counter2 = bin2hex(fread($fp, 52));
+			$data_counter2U = strtoupper($data_counter2);
+			conditional_echo("Counter Data-2 read: $data_counter2U$newline", $echo_flag);
 			usleep($nanosleeptime);
 
 			fwrite($fp,$remeha_counter3, 10);
 			$data_counter3="";
 			$data_counter3=bin2hex(fread($fp, 52));
-			conditional_echo("Counter Data-3 read: $data_counter3$newline", $echo_flag);
+			$data_counter3U = strtoupper($data_counter3);
+			conditional_echo("Counter Data-3 read: $data_counter3U$newline", $echo_flag);
 			usleep($nanosleeptime);
 
 			fwrite($fp,$remeha_counter4, 10);
 			$data_counter4="";
 			$data_counter4=bin2hex(fread($fp, 52));
-			conditional_echo("Counter Data-4 read: $data_counter4$newline", $echo_flag);
+			$data_counter4U = strtoupper($data_counter4);
+			conditional_echo("Counter Data-4 read: $data_counter4U$newline", $echo_flag);
 			$output = counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data_counter4, $echo_flag, $newline);
 			fclose($fp);
 			sleep($sleeptime);
+			usleep($nanosleeptime);
 			$sample_cycle = 0;
 			}
 		}
@@ -166,8 +154,8 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$outsidetemperature .= $decode["13"];
 	if ($outsidetemperature == 8000) {$outsidetemperature = 0.00;}
 	else {$outsidetemperature == $outsidetemperature;} 	  
-	$calorifiertemperature = $decode["18"]; # Documented as Byte 15, but doesn't seem to make sense
-	$calorifiertemperature .= $decode["17"];
+	$calorifiertemperature = $decode["16"]; # Documented as Byte 15, but doesn't seem to make sense
+	$calorifiertemperature .= $decode["15"];
 	if ($calorifiertemperature == 8000) {$calorifiertemperature = 0.00;}
 	else {$calorifiertemperature == $calorifiertemperature;}
 	$boilerctrltemperature = $decode["20"];
@@ -205,30 +193,37 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$controltemperature .= $decode["58"];
 	$dhwflowrate = $decode["61"];
 	$dhwflowrate .= $decode["60"];
+	$solartemperature = $decode["64"];
+	$solartemperature .= $decode["63"];
+	if ($solartemperature == 8000) {$solartemperature = 0.00;}
+	else {$solartemperature == $solartemperature;}
+
 // END Sample Data Info
 
 //Convert Hex2Dec
-  	$flowtemperature = number_format(hexdec($flowtemperature)/100, 2);
-	$returntemperature = number_format(hexdec($returntemperature)/100, 2);
-	$outsidetemperature = number_format(hexdec($outsidetemperature)/100, 2);
-	$roomtemperature = number_format(hexdec($roomtemperature)/100, 2);
-	$controltemperature = number_format(hexdec($controltemperature)/100, 2);
-	$dhwintemperature = number_format(hexdec($dhwintemperature)/100, 2);
-	$calorifiertemperature = number_format(hexdec($calorifiertemperature)/100, 2);
-	$boilerctrltemperature = number_format(hexdec($boilerctrltemperature)/100, 2);
-	$thermostat = number_format(hexdec($thermostat)/100, 2);
-	$chsetpoint = number_format(hexdec($chsetpoint)/100, 2);
-	$dhwsetpoint = number_format(hexdec($dhwsetpoint)/100, 2);
-	$internalsetpoint = number_format(hexdec($internalsetpoint)/100, 2);
-	$fanspeed = hexdec($fanspeed);
+  	$flowtemperature = number_format(hexdecs($flowtemperature)/100, 2);
+	$returntemperature = number_format(hexdecs($returntemperature)/100, 2);
+	$dhwintemperature = number_format(hexdecs($dhwintemperature)/100, 2);
+	$outsidetemperature = number_format(hexdecs($outsidetemperature)/100, 2);
+	$calorifiertemperature = number_format(hexdecs($calorifiertemperature)/100, 2);
+	$boilerctrltemperature = number_format(hexdecs($boilerctrltemperature)/100, 2);
+	$roomtemperature = number_format(hexdecs($roomtemperature)/100, 2);
+	$chsetpoint = number_format(hexdecs($chsetpoint)/100, 2);
+	$dhwsetpoint = number_format(hexdecs($dhwsetpoint)/100, 2);
+	$thermostat = number_format(hexdecs($thermostat)/100, 2);
 	$fanspeedsetpoint = hexdec($fanspeedsetpoint);
+	$fanspeed = hexdec($fanspeed);
 	$ionisationcurrent = number_format(hexdec($ionisationcurrent)/10, 1);
-	$pumppower = hexdec($pumppower);
-	$pressure = number_format(hexdec($pressure)/10, 1);
-	$dhwflowrate = number_format(hexdec($dhwflowrate)/100, 2);
-	$actualpower = hexdec($actualpower);
-	$requiredoutput = hexdec($requiredoutput);
+	$internalsetpoint = number_format(hexdecs($internalsetpoint)/100, 2);
 	$availablepower = hexdec($availablepower);
+	$pumppower = hexdec($pumppower);
+	$requiredoutput = hexdec($requiredoutput);
+	$actualpower = hexdec($actualpower);
+	$pressure = number_format(hexdec($pressure)/10, 1);
+	$controltemperature = number_format(hexdecs($controltemperature)/100, 2);
+	$dhwflowrate = number_format(hexdecs($dhwflowrate)/100, 2);
+	$solartemperature = number_format(hexdecs($solartemperature)/100, 2);
+
 // END Convert Hex2Dec
 
 // Translate 'bits' to useful stuff
@@ -569,7 +564,8 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	echo "DHW Setpoint: $dhwsetpoint$deg_symbol$newline";
 	echo "Room Temperature: $roomtemperature$deg_symbol$newline";
 	echo "Room Temp. Setpoint: $thermostat$deg_symbol$newline";
-	echo "Boiler Control Temp.: $boilerctrltemperature$deg_symbol$newline";
+	echo "Boiler Control Temperature: $boilerctrltemperature$deg_symbol$newline";
+	echo "Solar Temperature: $solartemperature$deg_symbol$newline"; 
 	echo "$newline";
 	echo "Fan Speed setpoint: $fanspeedsetpoint"."rpm$newline";
 	echo "Fan Speed: $fanspeed"."rpm$newline";
@@ -654,7 +650,8 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$dhwecoIDX = $ini_array['dhwecoIDX'];
 	$stateIDX = $ini_array['stateIDX'];
 	$lockoutIDX = $ini_array['lockoutIDX'];
-	$blockingIDX = $ini_array['blockingIDX'];		
+	$blockingIDX = $ini_array['blockingIDX'];
+	$solartemperatureIDX = $ini_array['solartemperatureIDX'];
 // END Device ID's
 
 // Set variables for cURL updates & call udevice function to update
@@ -694,7 +691,8 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$DOMOdhweco = udevice($dhwecoIDX, 0, $heatrequest4, $DOMOIPAddress, $DOMOPort, $Username, $Password);
 	$DOMOstatus = udevice($stateIDX, 0, str_replace(' ', '%20', $state), $DOMOIPAddress, $DOMOPort, $Username, $Password);
 	$DOMOstatus = udevice($lockoutIDX, 0, str_replace(' ', '%20', $lockout), $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOstatus = udevice($blockingIDX, 0, str_replace(' ', '%20', $blocking), $DOMOIPAddress, $DOMOPort, $Username, $Password);		
+	$DOMOstatus = udevice($blockingIDX, 0, str_replace(' ', '%20', $blocking), $DOMOIPAddress, $DOMOPort, $Username, $Password);
+	$DOMOsolartemperature = udevice($solartemperatureIDX, 0, $solartemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password);		
 // END set variables for cURL updates
 }
 
@@ -872,6 +870,7 @@ function udevice($idx, $nvalue, $svalue, $DOMOIPAddress, $DOMOPort, $Username, $
 	// usleep(250000);
 	
 // Debug cURL string
+	// $newline ="\n";
 	// echo "Debug Info - http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=command&param=udevice&idx=$idx&nvalue=$nvalue&svalue=$svalue$newline";
 	// echo "IDX: $idx Value: $svalue$newline";
 }
@@ -1001,5 +1000,16 @@ function connect_to_esp($ESPIPAddress, $ESPPort, $retries, $newline)
 	}
 	
 	return $fp;
+}
+
+// Function to convert 'Signed HEX Values' to Decimal
+//
+function hexdecs($hex)
+{
+    $hex = preg_replace('/[^0-9A-Fa-f]/', '', $hex);
+    $dec = hexdec($hex);
+    $max = pow(2, 4 * (strlen($hex) + (strlen($hex) % 2)));
+    $_dec = $max - $dec;
+    return $dec > $_dec ? -$_dec : $dec;
 }
 ?>
