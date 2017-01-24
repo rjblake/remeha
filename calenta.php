@@ -3,19 +3,20 @@
 // error_reporting(E_ALL);
 
 $sample_cycle = 0;
-$retries = 3;
 
 // remeha.ini file Variables
 //
 $ini_array = parse_ini_file("remeha.ini");
 $ESPIPAddress = $ini_array['ESPIPAddress'];
 $ESPPort = $ini_array['ESPPort'];
+$retries = $ini_array['retries'];
 $sleeptime = $ini_array['sleeptime'];
 $sample_loops = $ini_array['sample_loops'];
 $nanosleeptime =  $ini_array['nanosleeptime'];
 $echo_flag = $ini_array['echo_flag'];
 $newline = $ini_array['newline'];
 	if ($newline == "terminal"){$newline = "\n";}
+	elseif ($newline == "windows"){$newline = "\r\n";} 
 	else {$newline = "<br />";}
 $deg_symbol = $ini_array['deg_symbol'];
 $remeha_sample = hex2bin($ini_array['remeha_sample']);
@@ -993,12 +994,9 @@ function connect_to_esp($ESPIPAddress, $ESPPort, $retries, $newline)
 			echo "Trying to reset ESP8266 @ $ESPIPAddress $newline";
 			file_get_contents("http://$ESPIPAddress/log/reset");
 		}
-		
 		sleep(10); // sleep for 10 seconds before trying again
-		
 		$retry++;
 	}
-	
 	return $fp;
 }
 
