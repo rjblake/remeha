@@ -96,8 +96,8 @@ while (true) #infinite loop until false
 			conditional_echo("Counter Data-4 read: $data_counter4U$newline", $echo_flag);
 			$output = counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data_counter4, $echo_flag, $newline);
 			fclose($fp);
+
 			sleep($sleeptime);
-			usleep($nanosleeptime);
 			$sample_cycle = 0;
 			}
 		}
