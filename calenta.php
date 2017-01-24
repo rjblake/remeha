@@ -1010,4 +1010,21 @@ function hexdecs($hex)
     $_dec = $max - $dec;
     return $dec > $_dec ? -$_dec : $dec;
 }
+
+function cls()
+{
+	if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
+	{
+    		echo '\r\n';
+	} 
+	elseif (strtoupper(substr(PHP_OS, 0, 3)) === 'LIN')
+	{
+		array_map(create_function('$a', 'print chr($a);'), array(27, 91, 72, 27, 91, 50, 74));
+	}
+	elseif (strtoupper(substr(PHP_OS, 0, 3)) === 'DAR')
+	{
+		array_map(create_function('$a', 'print chr($a);'), array(27, 91, 72, 27, 91, 50, 74));
+	}
+
+}
 ?>
