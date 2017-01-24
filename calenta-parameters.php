@@ -716,8 +716,8 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 	echo "Postpurge time for burner stop: $postpurge_time seconds$newline";
 	echo "Maximum flow temperature for blocking: $max_flowtemp$deg_symbol $newline";
 	echo "Tacho pulses per revolution of the fan$pulses_fan /second$newline";
-	echo "P factor fan speed contro: $p_factor_fan $newline";
-	echo "I factor fan speed contro: $i_factor_fan $newline";
+	echo "P factor fan speed control: $p_factor_fan $newline";
+	echo "I factor fan speed control: $i_factor_fan $newline";
 	echo "P factor CH control: $p_factor_CH $newline";
 	echo "I factor CH control: $i_factor_CH $newline";
 	echo "P factor for CH control when T1>setpoint: $p_factor_CH_down $newline";
