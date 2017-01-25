@@ -1,7 +1,7 @@
 <?php
 // Uncomment to report Errors for Debug purposes
 // error_reporting(E_ALL);
-
+require('user_functions.php');
 $sample_cycle = 0;
 
 // remeha.ini file Variables
@@ -36,7 +36,7 @@ while (true) #infinite loop until false
 			} 
 		else
 			{
-			echo chr(27).chr(91).'H'.chr(27).chr(91).'J';
+			cls();
 			stream_set_timeout($fp, 5);
 			// Collect Sample Data Info
 			conditional_echo(str_repeat("=", 166) . "$newline", $echo_flag);
@@ -62,7 +62,7 @@ while (true) #infinite loop until false
 			} 
 		else
 			{
-			echo chr(27).chr(91).'H'.chr(27).chr(91).'J';
+			cls();
 			stream_set_timeout($fp, 5);
 			// Collect Counter Info
 			conditional_echo(str_repeat("=", 148) . "$newline", $echo_flag);
@@ -117,6 +117,7 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 
 	// Write the contents to the file
 	$ini_array = parse_ini_file("remeha.ini");
+	$log_data = $ini_array['log_data'];
 	$path = $ini_array['path_to_logs'];
 	$filename = $ini_array['sample_data_log'];
 	$deg_symbol = $ini_array['deg_symbol'];
@@ -127,16 +128,22 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	if ($hexstrCRC == $crcCalc)
 		{
 		conditional_echo("Data Integrity Good - CRCs Compute OK$newline", $echo_flag);
-		$datatowrite = date_format($date, 'Y-m-d H:i:s') . ' | 02 ' . $hexstrPayload . ' ' . $hexstrCRC . ' ' .'03 |' . "\n";
-		file_put_contents($file, $datatowrite, FILE_APPEND);
-		conditional_echo("Data written to log: $file$newline", $echo_flag);
+		if ($log_data == 2)
+			{
+			$datatowrite = date_format($date, 'Y-m-d H:i:s') . ' | 02 ' . $hexstrPayload . ' ' . $hexstrCRC . ' ' .'03 |' . "\n";
+			file_put_contents($file, $datatowrite, FILE_APPEND);
+			conditional_echo("Data written to log: $file$newline", $echo_flag);
+			}
 		conditional_echo(str_repeat("=", 166) . "$newline$newline", $echo_flag);
 		}
 	else
 		{
-		$datatowrite = '**** CRC Error **** | ' . date_format($date, 'Y-m-d H:i:s') . ' | 02 ' . $hexstrPayload . ' ' . $hexstrCRC . ' ' .'03| ' . "\n";
-		file_put_contents($file, $datatowrite, FILE_APPEND);
-		conditional_echo("Data written to log: $file$newline", $echo_flag);
+		if ($log_data == 1)
+			{
+			$datatowrite = '**** CRC Error **** | ' . date_format($date, 'Y-m-d H:i:s') . ' | 02 ' . $hexstrPayload . ' ' . $hexstrCRC . ' ' .'03| ' . "\n";
+			file_put_contents($file, $datatowrite, FILE_APPEND);
+			conditional_echo("Data written to log: $file$newline", $echo_flag);
+			}
 		conditional_echo("$newline", $echo_flag);
 		conditional_echo("************** CRC ERROR!!!! ***********$newline", $echo_flag);
 		return;		# Don't continue with updating Sample data
@@ -387,11 +394,12 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 
 // Mapping of Status & Sub-Status values
   	$state = hexdec($state);
+	$flame = "Off";
 	if ($state == 0) {$state = "0:Standby";}
 	elseif ($state == 1) {$state = "1:Boiler start";}
-	elseif ($state == 2) {$state = "2:Burner start";}
-	elseif ($state == 3) {$state = "3:Burning CH";}
-	elseif ($state == 4) {$state = "4:Burning DHW";}
+	elseif ($state == 2) {$state = "2:Burner start"; $flame = "On";}
+	elseif ($state == 3) {$state = "3:Burning CH"; $flame = "On";}
+	elseif ($state == 4) {$state = "4:Burning DHW"; $flame = "On";}
 	elseif ($state == 5) {$state = "5:Burner stop";}
 	elseif ($state == 6) {$state = "6:Boiler stop";}
 	elseif ($state == 7) {$state = "7:-";}
@@ -466,7 +474,7 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 
 	// Locking Codes
 	$lockout = hexdec($lockout);
-	if ($lockout == 255) {$lockout = "No Locking (Locking 255)";}
+	if ($lockout == 255) {$lockout = "No Locking (Locking 255)"; $fault_lock = "False";}
 	elseif ($lockout == 0) {$lockout = "PSU not connected (Locking 0)";}	
 	elseif ($lockout == 1) {$lockout = "SU parameter fault (Locking 1)";}
 	elseif ($lockout == 2) {$lockout = "T HeatExch. closed (Locking 2)";}
@@ -505,7 +513,7 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 
 	// Blocking Codes
 	$blocking = hexdec($blocking);
-	if ($blocking == 255) {$blocking = "No Blocking (Blocking 255)";}
+	if ($blocking == 255) {$blocking = "No Blocking (Blocking 255)"; $fault_block = "False";}
 	elseif ($blocking == 0) {$blocking = "PCU parameter fault (Blocking 0)";}
 	elseif ($blocking == 1) {$blocking = "T Flow &gt; max.(Blocking 1)";}
 	elseif ($blocking == 2) {$blocking = "dT/s Flow > max. (Blocking 2)";}
@@ -548,6 +556,9 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	elseif ($blocking == 44) {$blocking = "44: DeltaT (Tf, Tr) too high";}
 	elseif ($blocking == 45) {$blocking = "45: Air pressure too high";}
 	elseif ($blocking == 999) {$blocking = "Unknown blocking code";}
+
+	if (($lockout == "No Locking (Locking 255)") && ($blocking == "No Blocking (Blocking 255)")) {$fault = "False";}
+
 // END mapping of Status, Sub-Status, Lockout & Blocking values
 
 // START Display Sample Data as Captured
@@ -615,6 +626,9 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	echo "$newline";
 	echo "Lockout E: $lockout$newline";
 	echo "Blocking b: $blocking$newline";
+	echo "$newline";
+	echo "Flame is: $flame$newline";
+	echo "Boiler fault: $fault$newline";
 	echo str_repeat("=", 80) . "$newline";
 // END Display Sample Data as Captured
 
@@ -653,53 +667,61 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$lockoutIDX = $ini_array['lockoutIDX'];
 	$blockingIDX = $ini_array['blockingIDX'];
 	$solartemperatureIDX = $ini_array['solartemperatureIDX'];
+	$flameIDX = $ini_array['flameIDX'];
+	$faultIDX = $ini_array['faultIDX'];
 // END Device ID's
 
 // Set variables for cURL updates & call udevice function to update
 	$DOMOIPAddress = $ini_array['DOMOIPAddress'];
 	$DOMOPort = $ini_array['DOMOPort'];
 	$Username = $ini_array['Username'];
-	$Password = $ini_array['Password'];	
+	$Password = $ini_array['Password'];
+	$DOMOUpdate = $ini_array['DOMOUpdate'];
 
-	$DOMOflowtemperature = udevice($flowtemperatureIDX, 0, $flowtemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOreturntemperature = udevice($returntemperatureIDX, 0, $returntemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password);
- 	$DOMOdhwintemperature = udevice($dhwintemperatureIDX, 0, $dhwintemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password);
- 	$DOMOcalorifiertemperature = udevice($calorifiertemperatureIDX, 0, $calorifiertemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOoutsidetemperature = udevice($outsidetemperatureIDX, 0, $outsidetemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOcontroltemperature = udevice($controltemperatureIDX, 0, $controltemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOinternalsetpoint = udevice($internalsetpointIDX, 0, $internalsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOchsetpoint = udevice($chsetpointIDX, 0, $chsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOdhwsetpoint = udevice($dhwsetpointIDX, 0, $dhwsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOroomtemperature = udevice($roomtemperatureIDX, 0, $roomtemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOthermostat = udevice($thermostatIDX, 0, $thermostat, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOboilerctrltemp = udevice($boilerctrltemperatureIDX, 0, $boilerctrltemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOfanspeedsetpoint = udevice($fanspeedsetpointIDX, 0, $fanspeedsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOfanSpeed = udevice($fanspeedIDX, 0, $fanspeed, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOionisationCurent = udevice($ionisationcurrentIDX, 0, $ionisationcurrent, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOpumppower = udevice($pumppowerIDX, 0, $pumppower, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOpressure = udevice($pressureIDX, 0, $pressure, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOdhwflowrate = udevice($dhwflowrateIDX, 0, $dhwflowrate, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOrequiredoutput = udevice($requiredoutputIDX, 0, $requiredoutput, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOavailablepower = udevice($availablepowerIDX, 0, $availablepower, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOactualpower = udevice($actualpowerIDX, 0, $actualpower, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOmodulationdemand = udevice($modulationdemandIDX, 0, $heatrequest1, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOignition = udevice($ignitionIDX, 0, $ignition2, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOgas = udevice($gasIDX, 0, $gasvalve0, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOionisation = udevice($ionisationIDX, 0, $ionisation2, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOpump = udevice($pumpIDX, 0, $pump0, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOthreewayvalve = udevice($threewayvalveIDX, 0, $threewayvalve3, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOdhwrequest = udevice($dhwrequestIDX, 0, $heatrequest7, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOdhweco = udevice($dhwecoIDX, 0, $heatrequest4, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOstatus = udevice($stateIDX, 0, str_replace(' ', '%20', $state), $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOstatus = udevice($lockoutIDX, 0, str_replace(' ', '%20', $lockout), $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOstatus = udevice($blockingIDX, 0, str_replace(' ', '%20', $blocking), $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOsolartemperature = udevice($solartemperatureIDX, 0, $solartemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password);		
+	$DOMOflowtemperature = udevice($flowtemperatureIDX, 0, $flowtemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOreturntemperature = udevice($returntemperatureIDX, 0, $returntemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+ 	$DOMOdhwintemperature = udevice($dhwintemperatureIDX, 0, $dhwintemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+ 	$DOMOcalorifiertemperature = udevice($calorifiertemperatureIDX, 0, $calorifiertemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOoutsidetemperature = udevice($outsidetemperatureIDX, 0, $outsidetemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOcontroltemperature = udevice($controltemperatureIDX, 0, $controltemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOinternalsetpoint = udevice($internalsetpointIDX, 0, $internalsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOchsetpoint = udevice($chsetpointIDX, 0, $chsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOdhwsetpoint = udevice($dhwsetpointIDX, 0, $dhwsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOroomtemperature = udevice($roomtemperatureIDX, 0, $roomtemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOthermostat = udevice($thermostatIDX, 0, $thermostat, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOboilerctrltemp = udevice($boilerctrltemperatureIDX, 0, $boilerctrltemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOfanspeedsetpoint = udevice($fanspeedsetpointIDX, 0, $fanspeedsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOfanSpeed = udevice($fanspeedIDX, 0, $fanspeed, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOionisationCurent = udevice($ionisationcurrentIDX, 0, $ionisationcurrent, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOpumppower = udevice($pumppowerIDX, 0, $pumppower, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOpressure = udevice($pressureIDX, 0, $pressure, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOdhwflowrate = udevice($dhwflowrateIDX, 0, $dhwflowrate, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOrequiredoutput = udevice($requiredoutputIDX, 0, $requiredoutput, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOavailablepower = udevice($availablepowerIDX, 0, $availablepower, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOactualpower = udevice($actualpowerIDX, 0, $actualpower, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOmodulationdemand = udevice($modulationdemandIDX, 0, $heatrequest1, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOignition = udevice($ignitionIDX, 0, $ignition2, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOgas = udevice($gasIDX, 0, $gasvalve0, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOionisation = udevice($ionisationIDX, 0, $ionisation2, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOpump = udevice($pumpIDX, 0, $pump0, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOthreewayvalve = udevice($threewayvalveIDX, 0, $threewayvalve3, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOdhwrequest = udevice($dhwrequestIDX, 0, $heatrequest7, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOdhweco = udevice($dhwecoIDX, 0, $heatrequest4, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOstatus = udevice($stateIDX, 0, str_replace(' ', '%20', $state), $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOsolartemperature = udevice($solartemperatureIDX, 0, $solartemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOflame = swdevice($flameIDX, 0, $flame, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	if ($fault == "True")
+	{
+		$DOMOstatus = udevice($lockoutIDX, 0, str_replace(' ', '%20', $lockout), $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOstatus = udevice($blockingIDX, 0, str_replace(' ', '%20', $blocking), $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOstatus = udevice($faultIDX, 0, $fault, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	}
+
 // END set variables for cURL updates
 }
 
 // Time to 'Work the COUNTER Data'
 //
-
 function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data_counter4, $echo_flag, $newline)
 {
 
@@ -734,27 +756,32 @@ function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data
 
 	// Write the contents to the file
 	$ini_array = parse_ini_file("remeha.ini");
+	$log_data = $ini_array['log_data'];
 	$path = $ini_array['path_to_logs'];
 	$filename = $ini_array['counter_data_log'];
 	$file = "$path$filename";
 	date_default_timezone_set('Europe/Amsterdam');
 	$date = date_create();
 
-
-
 	if (($hexstrCRC_cnt1 == $crcCalc_cnt1) && ($hexstrCRC_cnt2 == $crcCalc_cnt2) && ($hexstrCRC_cnt3 == $crcCalc_cnt3) && ($hexstrCRC_cnt4 == $crcCalc_cnt4))
 		{
 		conditional_echo("Data Integrity Good - CRCs Compute OK$newline", $echo_flag);
-		$datatowrite = date_format($date, 'Y-m-d H:i:s') . ' | 02 ' . $hexstrPayload_cnt1 . ' ' . $hexstrCRC_cnt1 . ' ' .'03 | ' . '02 ' . $hexstrPayload_cnt2 . ' ' . $hexstrCRC_cnt2 . ' ' .'03 | ' . '02 ' . $hexstrPayload_cnt3 . ' ' . $hexstrCRC_cnt3 . ' ' .'03 | ' . '02 ' . $hexstrPayload_cnt4 . ' ' . $hexstrCRC_cnt4 . ' ' .'03 |' . "\n";
-		file_put_contents($file, $datatowrite, FILE_APPEND);
-		conditional_echo("Data written to log: $file$newline", $echo_flag);
+		if ($log_data == 2)
+			{
+			$datatowrite = date_format($date, 'Y-m-d H:i:s') . ' | 02 ' . $hexstrPayload_cnt1 . ' ' . $hexstrCRC_cnt1 . ' ' .'03 | ' . '02 ' . $hexstrPayload_cnt2 . ' ' . $hexstrCRC_cnt2 . ' ' .'03 | ' . '02 ' . $hexstrPayload_cnt3 . ' ' . $hexstrCRC_cnt3 . ' ' .'03 | ' . '02 ' . $hexstrPayload_cnt4 . ' ' . $hexstrCRC_cnt4 . ' ' .'03 |' . "\n";
+			file_put_contents($file, $datatowrite, FILE_APPEND);
+			conditional_echo("Data written to log: $file$newline", $echo_flag);
+			}
 		conditional_echo(str_repeat("=", 148) . "$newline$newline", $echo_flag);
 		}
 	else
 		{
-		$datatowrite = '**** CRC Error **** | ' . date_format($date, 'Y-m-d H:i:s') . ' | 02 ' . $hexstrPayload_cnt1 . ' ' . $hexstrCRC_cnt1 . ' ' .'03 | ' . '02 ' . $hexstrPayload_cnt2 . ' ' . $hexstrCRC_cnt2 . ' ' .'03 | ' . '02 ' . $hexstrPayload_cnt3 . ' ' . $hexstrCRC_cnt3 . ' ' .'03 | ' . '02 ' . $hexstrPayload_cnt4 . ' ' . $hexstrCRC_cnt4 . ' ' .'03 |' . "\n";
-		file_put_contents($file, $datatowrite, FILE_APPEND);
-		conditional_echo("Data written to log: $file$newline", $echo_flag);
+		if ($log_data == 1)
+			{
+			$datatowrite = '**** CRC Error **** | ' . date_format($date, 'Y-m-d H:i:s') . ' | 02 ' . $hexstrPayload_cnt1 . ' ' . $hexstrCRC_cnt1 . ' ' .'03 | ' . '02 ' . $hexstrPayload_cnt2 . ' ' . $hexstrCRC_cnt2 . ' ' .'03 | ' . '02 ' . $hexstrPayload_cnt3 . ' ' . $hexstrCRC_cnt3 . ' ' .'03 | ' . '02 ' . $hexstrPayload_cnt4 . ' ' . $hexstrCRC_cnt4 . ' ' .'03 |' . "\n";
+			file_put_contents($file, $datatowrite, FILE_APPEND);
+			conditional_echo("Data written to log: $file$newline", $echo_flag);
+			}
 		conditional_echo("$newline", $echo_flag);
 		conditional_echo("************** CRC ERROR!!!! ***********$newline", $echo_flag);
 		return;		# Don't continue with updating Counter data
@@ -838,193 +865,20 @@ function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data
 	$DOMOIPAddress = $ini_array['DOMOIPAddress'];
 	$DOMOPort = $ini_array['DOMOPort'];
 	$Username = $ini_array['Username'];
-	$Password = $ini_array['Password'];	
+	$Password = $ini_array['Password'];
+	$DOMOUpdate = $ini_array['DOMOUpdate'];
 
-	$DOMOpumphours_ch_dhw = udevice($pumphours_ch_dhwIDX, 0, $pumphours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOthreewayvalvehours = udevice($threewayvalvehoursIDX, 0, $threewayvalvehours, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOhours_ch_dhw = udevice($hours_ch_dhwIDX, 0, $hours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOhours_dhw = udevice($hours_dhwIDX, 0, $hours_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOpowerhours_ch_dhw = udevice($powerhours_ch_dhwIDX, 0, $powerhours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOpumpstarts_ch_dhw = udevice($pumpstarts_ch_dhwIDX, 0, $pumpstarts_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOnr_threewayvalvecycles = udevice($nr_threewayvalvecyclesIDX, 0, $nr_threewayvalvecycles, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOburnerstarts_dhw = udevice($burnerstarts_dhwIDX, 0, $burnerstarts_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOtot_burnerstarts_ch_dhw = udevice($tot_burnerstarts_ch_dhwIDX, 0, $tot_burnerstarts_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOfailed_burnerstarts = udevice($failed_burnerstartsIDX, 0, $failed_burnerstarts, $DOMOIPAddress, $DOMOPort, $Username, $Password);
-	$DOMOnr_flame_loss = udevice($nr_flame_lossIDX, 0, $nr_flame_loss, $DOMOIPAddress, $DOMOPort, $Username, $Password);
+	$DOMOpumphours_ch_dhw = udevice($pumphours_ch_dhwIDX, 0, $pumphours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOthreewayvalvehours = udevice($threewayvalvehoursIDX, 0, $threewayvalvehours, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOhours_ch_dhw = udevice($hours_ch_dhwIDX, 0, $hours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOhours_dhw = udevice($hours_dhwIDX, 0, $hours_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOpowerhours_ch_dhw = udevice($powerhours_ch_dhwIDX, 0, $powerhours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOpumpstarts_ch_dhw = udevice($pumpstarts_ch_dhwIDX, 0, $pumpstarts_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOnr_threewayvalvecycles = udevice($nr_threewayvalvecyclesIDX, 0, $nr_threewayvalvecycles, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOburnerstarts_dhw = udevice($burnerstarts_dhwIDX, 0, $burnerstarts_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOtot_burnerstarts_ch_dhw = udevice($tot_burnerstarts_ch_dhwIDX, 0, $tot_burnerstarts_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOfailed_burnerstarts = udevice($failed_burnerstartsIDX, 0, $failed_burnerstarts, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+	$DOMOnr_flame_loss = udevice($nr_flame_lossIDX, 0, $nr_flame_loss, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 // END set variables for cURL updates
-}
-
-// Function to update Domoticz using cURL
-//
-function udevice($idx, $nvalue, $svalue, $DOMOIPAddress, $DOMOPort, $Username, $Password) 
-{
-	
-// Comment if you don't want to update Domoticz	
-	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($ch, CURLOPT_URL, "http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=command&param=udevice&idx=$idx&nvalue=$nvalue&svalue=$svalue");	
-	curl_exec($ch);
-	curl_close($ch);
-// End Comment if you don't want to update Domoticz
-
-// Sleep for 1/4 sec - in case system stressed/slow
-	// usleep(250000);
-	
-// Debug cURL string
-	// $newline ="\n";
-	// echo "Debug Info - http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=command&param=udevice&idx=$idx&nvalue=$nvalue&svalue=$svalue$newline";
-	// echo "IDX: $idx Value: $svalue$newline";
-}
-
-// Function to work out BIT flags
-// 
-function nbit($number, $n) 
-{
-	return ($number >> $n) & 1;	#BITS Numbered 0-7
-}
-
-// Function to debug BITs
-//
-function showbits($val, $byte)
-{
-// Show workings of BITS
-	$valDEC = hexdec($val);
-	$valBIN = base_convert($val, 16, 2);
-	$valBIN = sprintf( "%08d", $valBIN);
-
-	$valBITx0 = ($valDEC & (1<<0));
-	$valBITx1 = ($valDEC & (1<<1));
-	$valBITx2 = ($valDEC & (1<<2));
-	$valBITx3 = ($valDEC & (1<<3));
-	$valBITx4 = ($valDEC & (1<<4));
-	$valBITx5 = ($valDEC & (1<<5));
-	$valBITx6 = ($valDEC & (1<<6));
-	$valBITx7 = ($valDEC & (1<<7));
-	$nbitX0 = nbit($valDEC, 0);
-	$nbitX1 = nbit($valDEC, 1);
-	$nbitX2 = nbit($valDEC, 2);
-	$nbitX3 = nbit($valDEC, 3);
-	$nbitX4 = nbit($valDEC, 4);
-	$nbitX5 = nbit($valDEC, 5);
-	$nbitX6 = nbit($valDEC, 6);
-	$nbitX7 = nbit($valDEC, 7);
-
-	echo str_repeat("=", 40) . "$newline";
-	echo "Content & Value of BITS: $byte$newline";
-	echo "Value (HEX, Dec, Bin): $val, $valDEC, $valBIN$newline";
-	echo str_repeat("=", 40) . "$newline";
-	echo "nBit0: 	$nbitX0" .' '."| Bit0: 	$valBITx0$newline";
-	echo "nBit1: 	$nbitX1" .' '."| Bit1: 	$valBITx1$newline";
-	echo "nBit2: 	$nbitX2" .' '."| Bit2: 	$valBITx2$newline";
-	echo "nBit3: 	$nbitX3" .' '."| Bit3: 	$valBITx3$newline";
-	echo "nBit4: 	$nbitX4" .' '."| Bit4: 	$valBITx4$newline";
-	echo "nBit5: 	$nbitX5" .' '."| Bit5: 	$valBITx5$newline";
-	echo "nBit6: 	$nbitX6" .' '."| Bit6: 	$valBITx6$newline";
-	echo "nBit7: 	$nbitX7" .' '."| Bit7: 	$valBITx7$newline";
-	echo str_repeat("=", 40) . "$newline";
-// END workings of BITS
-}
-
-// ...and the CRC16 Modbus Check to check data integrity
-//
-function crc16_modbus($msg)
-{
-	$data = pack('H*',$msg);
-	$crc = 0xFFFF;
-	for ($i = 0; $i < strlen($data); $i++)
-	{
-		$crc ^=ord($data[$i]);
-		for ($j = 8; $j !=0; $j--)
-		{
-			if (($crc & 0x0001) !=0)
-			{
-				$crc >>= 1;
-				$crc ^= 0xA001;
-			}
-			else $crc >>= 1;
-			}
-		}
-
-	$crc_semi_inverted = sprintf('%04x', $crc);
-	$crc_modbus = substr($crc_semi_inverted, 2, 2).substr($crc_semi_inverted, 0, 2);
-	$crc_modbus = hexdec($crc_modbus);
-	return sprintf('%04x', $crc_modbus);
-}
-
-// Function to convert HEX to ASCII for Device ID, Serial, etc.
-// usage (e.g. $hexstr = "43616c656e7461202020202020202020";) whic is "Calenta"
-function hex2str($hex)
-{
-	$str = "";
-	for($i=0;$i<strlen($hex);$i+=2) $str .= chr(hexdec(substr($hex, $i, 2)));
-	return $str;
-}
-
-// Function to show statements or not based on a flag
-// If variable $echo_flag = 1, show the output of "echo", otherwise hide it
-function conditional_echo($string,$echo_flag)
-{
-	if ($echo_flag == 1)
-	{
-		echo $string;
-	}
-}
-
-// Function to connect to ESP8266
-//
-function connect_to_esp($ESPIPAddress, $ESPPort, $retries, $newline)
-{
-	$connected = false;
-	$retry = 0;
-	
-	// Keep looping until connected or met no. of retries if $retries is not zero
-	while (!$connected && ($retries==0 || ($retries>0 && $retry<$retries)))
-	{
-		// try connecting to the ESP8266
-		$fp = fsockopen($ESPIPAddress, $ESPPort, $errno, $errstr, 5);
-		
-		if ($fp)
-		{
-			return $fp;
-			// connection was successful
-		}
-		else
-		{
-			echo "Unable to establish connection to ".$ESPIPAddress.":".$ESPPort." - Error:$errno:".$errstr."$newline";
-			echo "Trying to reset ESP8266 @ $ESPIPAddress $newline";
-			file_get_contents("http://$ESPIPAddress/log/reset");
-		}
-		sleep(10); // sleep for 10 seconds before trying again
-		$retry++;
-	}
-	return $fp;
-}
-
-// Function to convert 'Signed HEX Values' to Decimal
-//
-function hexdecs($hex)
-{
-    $hex = preg_replace('/[^0-9A-Fa-f]/', '', $hex);
-    $dec = hexdec($hex);
-    $max = pow(2, 4 * (strlen($hex) + (strlen($hex) % 2)));
-    $_dec = $max - $dec;
-    return $dec > $_dec ? -$_dec : $dec;
-}
-
-function cls()
-{
-	if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
-	{
-    		echo '\r\n';
-	} 
-	elseif (strtoupper(substr(PHP_OS, 0, 3)) === 'LIN')
-	{
-		array_map(create_function('$a', 'print chr($a);'), array(27, 91, 72, 27, 91, 50, 74));
-	}
-	elseif (strtoupper(substr(PHP_OS, 0, 3)) === 'DAR')
-	{
-		array_map(create_function('$a', 'print chr($a);'), array(27, 91, 72, 27, 91, 50, 74));
-	}
-
 }
 ?>
