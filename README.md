@@ -14,14 +14,15 @@ The ESP8266 is running and has been tested with the ESP-Link firmware/software l
 Currently this is a 'read only' script and provides the following functionality:
 
 1. Connects ESP to Calenta
-2. Sends Hex to Calenta and reads the responses (for "Sample Data" and "Counter Data")
+2. Sends Hex to Calenta and reads the responses (for "Sample Data", "Counter Data" and "Parameters")
 3. Maps response to more 'logical' variables
 4. Translates various 'bits' to provide correct messages
 5. Writes information received to Domoticz server using cURL
+6. The calenta-xxxxx.php scripts can be run from within a browser, while the calenta.php script is best run as a daemon or in the background
 
 To do:
 
-1. Add code to collect other parameters from the Calenta (e.g. Identification, Parameters, etc.) 
+1. Add code to collect other details from the Calenta (e.g. Identification, Error logs, etc.) 
 2. Add code to adjust/change parameters (e.g. pump running time, control setpoint, etc.)
 3. ...basically provide similar/same functionality as the Remeha Recom software - but using a cheap ESP8266 and web interface.
 4. Tidy up and optimise code :)
