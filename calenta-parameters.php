@@ -1,6 +1,26 @@
-﻿<?php
+<style>
+  body {
+  font-family: monaco, monospace;
+  font-size: 0.7em;
+  // font-family: arial,sans-serif;
+  // font-size: small;
+  text-align: left;
+}
+h1 {
+  font-size: 20px
+}
+h2 {
+  font-size: 14px;
+}
+h3 {
+  font-size: 10px;
+}
+</style>
+
+<?php
 // Uncomment to report Errors for Debug purposes
 // error_reporting(E_ALL);
+require('user_functions.php');
 
 // remeha.ini file Variables
 //
@@ -8,16 +28,13 @@ $ini_array = parse_ini_file("remeha.ini");
 $ESPIPAddress = $ini_array['ESPIPAddress'];
 $ESPPort = $ini_array['ESPPort'];
 $retries = $ini_array['retries'];
-$sleeptime = $ini_array['sleeptime'];
-$sample_loops = $ini_array['sample_loops'];
 $nanosleeptime =  $ini_array['nanosleeptime'];
-$echo_flag = $ini_array['echo_flag'];
-$newline = $ini_array['newline'];
-	if ($newline == "terminal"){$newline = "\n";}
-	else {$newline = "<br />";}
-$deg_symbol = $ini_array['deg_symbol'];
+$echo_flag = "1";
+$newline = "<br />";
 
-$remeha_id = hex2bin($ini_array['remeha_id']);
+$remeha_id1 = hex2bin($ini_array['remeha_id1']);
+$remeha_id2 = hex2bin($ini_array['remeha_id2']);
+$remeha_id3 = hex2bin($ini_array['remeha_id3']);
 $remeha_param1 = hex2bin($ini_array['remeha_param1']);
 $remeha_param2 = hex2bin($ini_array['remeha_param2']);
 $remeha_param3 = hex2bin($ini_array['remeha_param3']);
@@ -34,11 +51,34 @@ if (!$fp)
 	} 
 else
 	{
-	echo chr(27).chr(91).'H'.chr(27).chr(91).'J';
-	stream_set_timeout($fp, 5);			
+	// cls();
+	stream_set_timeout($fp, 5);
+	
 	conditional_echo(str_repeat("=", 166) . "$newline", $echo_flag);
 	conditional_echo("Connected to $ESPIPAddress:$ESPPort$newline", $echo_flag);
 	conditional_echo("Sending request...$newline", $echo_flag);
+	
+	// ID Data Collection
+	fwrite($fp,$remeha_id1, 10);
+	$data_id1 = "";
+	$data_id1 = bin2hex(fread($fp, 148));
+	$data_id1U = strtoupper($data_id1);
+	conditional_echo("ID-01 read: $data_id1U$newline", $echo_flag);
+	usleep($nanosleeptime);
+
+	fwrite($fp,$remeha_id2, 10);
+	$data_id2 = "";
+	$data_id2 = bin2hex(fread($fp, 52));
+	$data_id2U = strtoupper($data_id2);
+	conditional_echo("ID-02 read: $data_id2U$newline", $echo_flag);
+	usleep($nanosleeptime);
+
+	fwrite($fp,$remeha_id3, 10);
+	$data_id3 = "";
+	$data_id3 = bin2hex(fread($fp, 52));
+	$data_id3U = strtoupper($data_id3);
+	conditional_echo("ID-03 read: $data_id3U$newline", $echo_flag);
+	usleep($nanosleeptime);
 
 	// Parameter Data collection
 	fwrite($fp,$remeha_param1, 10);
@@ -102,7 +142,6 @@ else
 
 function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4, $data_param5, $data_param6, $data_param7, $data_param8, $echo_flag, $newline)
 {
-
 // Manipulate data & Do a CRC Check	
 	$decode_param1 = str_split($data_param1, 2);
 	$hexstr_param1 = str_split($data_param1, 52);
@@ -152,44 +191,39 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 	$hexstrCRC_param8 = substr($data_param8, 46, 4);
 	$crcCalc_param8 = crc16_modbus($hexstrPayload_param8);	
 
-/* Print CRC to compare	
-	echo "$hexstrCRC_param1:$crcCalc_param1$newline";
-	echo "$hexstrCRC_param2:$crcCalc_param2$newline";
-	echo "$hexstrCRC_param3:$crcCalc_param3$newline";
-	echo "$hexstrCRC_param4:$crcCalc_param4$newline";
-	echo "$hexstrCRC_param5:$crcCalc_param5$newline";
-	echo "$hexstrCRC_param6:$crcCalc_param6$newline";
-	echo "$hexstrCRC_param7:$crcCalc_param7$newline";
-	echo "$hexstrCRC_param8:$crcCalc_param8$newline";
-*/
-
 	// Concatenate Parameter data to work with
 	$concat_parameter = substr($hexstrPayload_param1, 12, 32).substr($hexstrPayload_param2, 12, 32).substr($hexstrPayload_param3, 12, 32).substr($hexstrPayload_param4, 12, 32).substr($hexstrPayload_param5, 12, 32).substr($hexstrPayload_param6, 12, 32).substr($hexstrPayload_param7, 12, 32).substr($hexstrPayload_param8, 12, 32);
 	$decode_parameter = str_split($concat_parameter, 2);		
 
 	// Write the contents to the file
 	$ini_array = parse_ini_file("remeha.ini");
+	$log_data = $ini_array['log_data'];
 	$path = $ini_array['path_to_logs'];
 	$filename = $ini_array['parameter_data_log'];
 	$file = "$path$filename";
 	date_default_timezone_set('Europe/Amsterdam');
 	$date = date_create();
-	$deg_symbol = $ini_array['deg_symbol'];
-
+	$deg_symbol = "&degC";
 
 	if (($hexstrCRC_param1 == $crcCalc_param1) && ($hexstrCRC_param2 == $crcCalc_param2) && ($hexstrCRC_param3 == $crcCalc_param3) && ($hexstrCRC_param4 == $crcCalc_param4) && ($hexstrCRC_param5 == $crcCalc_param5) && ($hexstrCRC_param6 == $crcCalc_param6) && ($hexstrCRC_param7 == $crcCalc_param7) && ($hexstrCRC_param8 == $crcCalc_param8))
 		{
 		conditional_echo("Data Integrity Good - CRCs Compute OK$newline", $echo_flag);
-		$datatowrite = date_format($date, 'Y-m-d H:i:s') . ' | 02 ' . $hexstrPayload_param1 . ' ' . $hexstrCRC_param1 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param2 . ' ' . $hexstrCRC_param2 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param3 . ' ' . $hexstrCRC_param3 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param4 . ' ' . $hexstrCRC_param4 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param5 . ' ' . $hexstrCRC_param5 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param6 . ' ' . $hexstrCRC_param6 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param7 . ' ' . $hexstrCRC_param7 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param8 . ' ' . $hexstrCRC_param8 . ' ' .'03 | ' . "\n";
-		file_put_contents($file, $datatowrite, FILE_APPEND);
-		conditional_echo("Data written to log: $file$newline", $echo_flag);
-		conditional_echo(str_repeat("=", 148) . "$newline$newline", $echo_flag);
+		if ($log_data == 2)
+			{
+			$datatowrite = date_format($date, 'Y-m-d H:i:s') . ' | 02 ' . $hexstrPayload_param1 . ' ' . $hexstrCRC_param1 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param2 . ' ' . $hexstrCRC_param2 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param3 . ' ' . $hexstrCRC_param3 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param4 . ' ' . $hexstrCRC_param4 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param5 . ' ' . $hexstrCRC_param5 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param6 . ' ' . $hexstrCRC_param6 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param7 . ' ' . $hexstrCRC_param7 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param8 . ' ' . $hexstrCRC_param8 . ' ' .'03 | ' . "\n";
+			file_put_contents($file, $datatowrite, FILE_APPEND);
+			conditional_echo("Data written to log: $file$newline", $echo_flag);
+			}
+		conditional_echo(str_repeat("=", 166) . "$newline", $echo_flag);
 		}
 	else
 		{
-		$datatowrite = '**** CRC Error **** | ' . date_format($date, 'Y-m-d H:i:s') . ' | 02 ' . $hexstrPayload_param1 . ' ' . $hexstrCRC_param1 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param2 . ' ' . $hexstrCRC_param2 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param3 . ' ' . $hexstrCRC_param3 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param4 . ' ' . $hexstrCRC_param4 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param5 . ' ' . $hexstrCRC_param5 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param6 . ' ' . $hexstrCRC_param6 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param7 . ' ' . $hexstrCRC_param7 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param8 . ' ' . $hexstrCRC_param8 . ' ' .'03 | ' . "\n";
-		file_put_contents($file, $datatowrite, FILE_APPEND);
-		conditional_echo("Data written to log: $file$newline", $echo_flag);
+		if ($log_data == 1)
+			{
+			$datatowrite = '**** CRC Error **** | ' . date_format($date, 'Y-m-d H:i:s') . ' | 02 ' . $hexstrPayload_param1 . ' ' . $hexstrCRC_param1 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param2 . ' ' . $hexstrCRC_param2 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param3 . ' ' . $hexstrCRC_param3 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param4 . ' ' . $hexstrCRC_param4 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param5 . ' ' . $hexstrCRC_param5 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param6 . ' ' . $hexstrCRC_param6 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param7 . ' ' . $hexstrCRC_param7 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param8 . ' ' . $hexstrCRC_param8 . ' ' .'03 | ' . "\n";
+			file_put_contents($file, $datatowrite, FILE_APPEND);
+			conditional_echo("Data written to log: $file$newline", $echo_flag);
+			}
 		conditional_echo("$newline", $echo_flag);
 		conditional_echo("************** CRC ERROR!!!! ***********$newline", $echo_flag);
 		return;		# Don't continue with updating Parameter data
@@ -624,7 +658,6 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 // END Parameters Info
 
 // START Display Parameters
-	echo str_repeat("=", 80) . "$newline";
 	echo "Parameters Received: " . date_format($date, 'Y-m-d H:i:s') . "$newline";
 	echo str_repeat("=", 80) . "$newline";
 	echo "Max. Flow Temp. during CH mode: $tflow_setpoint$deg_symbol$newline";
@@ -663,7 +696,7 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 	echo "Mains Live-Neutral phase Detection: $mains_LN$newline";
 	echo "Service Notification for Boiler Dependent Maintenance: $service_notification$newline";
 	echo "Service Hours for Boiler connected to mains: $service_hours$newline";
-	echo "Service Hours for Boiler Burner: service_burning$newline";
+	echo "Service Hours for Boiler Burner: $service_burning$newline";
 	echo "Tau Factor for average flow temperature calculation: $factor_avgflow seconds$newline";
 	echo "DHW-in gradient for restart stabilisation time: $DHW_in_gradient$deg_symbol/second$newline";
 	echo "dT pump offset: $dt_pump_offset$deg_symbol$newline";
@@ -692,7 +725,7 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 	echo "Hysterese when warming up for DHW comfort: $hysterese_warming_up$deg_symbol $newline";
 	echo "Offset when warming up for DHW comfort: $offset_warming_up$deg_symbol $newline";
 	echo "DHW start raise depending op DHW flow: $DHW_start_raise $newline";
-	echo "Switch on hystereses DHW operation$hysterese_DHW$deg_symbol $newline";
+	echo "Switch on hystereses DHW operation: $hysterese_DHW$deg_symbol $newline";
 	echo "Offset DHW: $offset_DHW$deg_symbol $newline";
 	echo "Temperature correction DHW for Tset, ww - Tret, plate heat exchanger: $offsett_p1_heatexchg$deg_symbol $newline";
 	echo "%Tf/Tr for DHW control temperature at pumpspeed 20%: $Tf_Tr_DHW_pump_20 %$newline";
@@ -715,9 +748,9 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 	echo "Prepurge time for burner start: $prepurge_time seconds$newline";
 	echo "Postpurge time for burner stop: $postpurge_time seconds$newline";
 	echo "Maximum flow temperature for blocking: $max_flowtemp$deg_symbol $newline";
-	echo "Tacho pulses per revolution of the fan$pulses_fan /second$newline";
-	echo "P factor fan speed control: $p_factor_fan $newline";
-	echo "I factor fan speed control: $i_factor_fan $newline";
+	echo "Tacho pulses per revolution of the fan: $pulses_fan /second$newline";
+	echo "P factor fan speed contro: $p_factor_fan $newline";
+	echo "I factor fan speed contro: $i_factor_fan $newline";
 	echo "P factor CH control: $p_factor_CH $newline";
 	echo "I factor CH control: $i_factor_CH $newline";
 	echo "P factor for CH control when T1>setpoint: $p_factor_CH_down $newline";
@@ -734,85 +767,4 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 	echo str_repeat("=", 80) . "$newline";
 // END Display Parameters
 }
-
-// CRC16 Modbus Check to check data integrity
-//
-function crc16_modbus($msg)
-{
-	$data = pack('H*',$msg);
-	$crc = 0xFFFF;
-	for ($i = 0; $i < strlen($data); $i++)
-	{
-		$crc ^=ord($data[$i]);
-		for ($j = 8; $j !=0; $j--)
-		{
-			if (($crc & 0x0001) !=0)
-			{
-				$crc >>= 1;
-				$crc ^= 0xA001;
-			}
-			else $crc >>= 1;
-			}
-		}
-
-	$crc_semi_inverted = sprintf('%04x', $crc);
-	$crc_modbus = substr($crc_semi_inverted, 2, 2).substr($crc_semi_inverted, 0, 2);
-	$crc_modbus = hexdec($crc_modbus);
-	return sprintf('%04x', $crc_modbus);
-}
-
-// Function to show statements or not based on a flag
-// If variable $echo_flag = 1, show the output of "echo", otherwise hide it
-function conditional_echo($string,$echo_flag)
-{
-	if ($echo_flag == 1)
-	{
-		echo $string;
-	}
-}
-
-// Function to connect to ESP8266
-//
-function connect_to_esp($ESPIPAddress, $ESPPort, $retries, $newline)
-{
-	$connected = false;
-	$retry = 0;
-	
-	// Keep looping until connected or met no. of retries if $retries is not zero
-	while (!$connected && ($retries==0 || ($retries>0 && $retry<$retries)))
-	{
-		// try connecting to the ESP8266
-		$fp = fsockopen($ESPIPAddress, $ESPPort, $errno, $errstr, 5);
-		
-		if ($fp)
-		{
-			return $fp;
-			// connection was successful
-		}
-		else
-		{
-			echo "Unable to establish connection to ".$ESPIPAddress.":".$ESPPort." - Error:$errno:".$errstr."$newline";
-			echo "Trying to reset ESP8266 @ $ESPIPAddress $newline";
-			file_get_contents("http://$ESPIPAddress/log/reset");
-		}
-		
-		sleep(10); // sleep for 10 seconds before trying again
-		
-		$retry++;
-	}
-	
-	return $fp;
-}
-
-// Function to convert 'Signed Hex' to Decimal
-//
-function hexdecs($hex)
-{
-    $hex = preg_replace('/[^0-9A-Fa-f]/', '', $hex);
-    $dec = hexdec($hex);
-    $max = pow(2, 4 * (strlen($hex) + (strlen($hex) % 2)));
-    $_dec = $max - $dec;
-    return $dec > $_dec ? -$_dec : $dec;
-}
-
 ?>
