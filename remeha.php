@@ -1,7 +1,7 @@
 <?php
 // Uncomment to report Errors for Debug purposes
 // error_reporting(E_ALL);
-require('user_functions.php');
+require('remeha_functions.php');
 $sample_cycle = 0;
 
 // remeha.ini file Variables
