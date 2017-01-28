@@ -20,7 +20,7 @@ h3 {
 <?php
 // Uncomment to report Errors for Debug purposes
 // error_reporting(E_ALL);
-require('user_functions.php');
+require('remeha_functions.php');
 
 // remeha.ini file Variables
 //
