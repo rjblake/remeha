@@ -220,6 +220,23 @@ function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data
 	// END Device ID's
 
 	// Set variables for cURL updates & call udevice function to update
+	$DOMOIPAddress = $ini_array['DOMOIPAddress'];
+	$DOMOPort = $ini_array['DOMOPort'];
+	$Username = $ini_array['Username'];
+	$Password = $ini_array['Password'];
+	$DOMOUpdate = $ini_array['DOMOUpdate'];
+
+	$url = "http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=devices&rid=$dhwsetpointIDX";
+	$json_string = file_get_contents($url);
+	$parsed_json = json_decode($json_string, true);	
+	$DOMOdevices_lastupdate = array_lookup($parsed_json, $dhwsetpointIDX, "LastUpdate");
+	$now = date('Y-m-d H:i:s');
+	$time_diff_mins = number_format((strtotime($now) - strtotime($DOMOdevices_lastupdate))/60, 2);
+	echo "Last Update: $DOMOdevices_lastupdate - Now: $now - Diff: $time_diff_mins<br />";
+	if ($time_diff_mins > 45) {$DOMOUpdateAll = 1;}
+	else {$DOMOUpdateAll = $ini_array['DOMOUpdateAll'];}
+
+	// Set variables for cURL updates & call udevice function to update
 	If ($DOMOUpdateAll == 1)
 		{
 		$DOMOpumphours_ch_dhw = udevice($pumphours_ch_dhwIDX, 0, $pumphours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
@@ -237,10 +254,6 @@ function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data
 		}
 	else
 		{
-		$url = "http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=devices&filter=all&order=ID";
-		$json_string = file_get_contents($url);
-		$parsed_json = json_decode($json_string, true);
-
 		$DOMOType = "Data";		// Lookup the 'Data' devices
 		$DOMOpumphours_ch_dhw_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $pumphours_ch_dhwIDX, $DOMOType));
 		If ($DOMOpumphours_ch_dhw_array != $pumphours_ch_dhw) {$DOMOpumphours_ch_dhw = udevice($pumphours_ch_dhwIDX, 0, $pumphours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
