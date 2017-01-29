@@ -86,7 +86,7 @@ else
 function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data_counter4, $echo_flag, $newline)
 {
 
-// Manipulate data & Do a CRC Check	
+	// Manipulate data & Do a CRC Check	
 	$decode_cnt1 = str_split($data_counter1, 2);
 	$hexstr_cnt1 = str_split($data_counter1, 52);
 	$hexstrPayload_cnt1 = substr($data_counter1, 2, 44);
@@ -148,7 +148,7 @@ function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data
 		return;		# Don't continue with updating Counter data
 		}
 
-// Counter Info
+	// Counter Info
 	$pumphours_ch_dhw = $decode_counter["0"];
 	$pumphours_ch_dhw .= $decode_counter["1"];
 	$threewayvalvehours = $decode_counter["2"];
@@ -171,10 +171,9 @@ function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data
 	$failed_burnerstarts .= $decode_counter["19"];
 	$nr_flame_loss = $decode_counter["20"];
 	$nr_flame_loss .= $decode_counter["21"];
-// END Counter Info
+	// END Counter Info
 
-//Convert Hex2Dec
-// Counters
+	//Convert Hex2Dec
 	$pumphours_ch_dhw = hexdec($pumphours_ch_dhw)*2;	
 	$threewayvalvehours = hexdec($threewayvalvehours)*2;
 	$hours_ch_dhw = hexdec($hours_ch_dhw)*2;
@@ -186,10 +185,9 @@ function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data
 	$tot_burnerstarts_ch_dhw = hexdec($tot_burnerstarts_ch_dhw)*8;
 	$failed_burnerstarts = hexdec($failed_burnerstarts)*1;
 	$nr_flame_loss = hexdec($nr_flame_loss)*1;
-// END Counters
-// END Convert Hex2Dec
+	// END Convert Hex2Dec
 
-// START Display Counters
+	// START Display Counters
 	echo "Counters Received: " . date_format($date, 'Y-m-d H:i:s') . "$newline";
 	echo str_repeat("=", 40) . "$newline";
 	echo "Hours run pump CH+DHW: $pumphours_ch_dhw hours$newline";
@@ -204,10 +202,10 @@ function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data
 	echo "Failed burner starts: $failed_burnerstarts starts$newline";
 	echo "Number of flame loss: $nr_flame_loss times$newline";
 	echo str_repeat("=", 40) . "$newline";
-// END Display Counters
+	// END Display Counters
 
-// Update Domoticz Devices with collected values
-// DomoticZ Device ID's
+	// Update Domoticz Devices with collected values
+	// DomoticZ Device ID's
 	$pumphours_ch_dhwIDX = $ini_array['pumphours_ch_dhwIDX'];
 	$threewayvalvehoursIDX = $ini_array['threewayvalvehoursIDX'];
 	$hours_ch_dhwIDX = $ini_array['hours_ch_dhwIDX'];
@@ -219,26 +217,64 @@ function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data
 	$tot_burnerstarts_ch_dhwIDX = $ini_array['tot_burnerstarts_ch_dhwIDX'];
 	$failed_burnerstartsIDX = $ini_array['failed_burnerstartsIDX'];
 	$nr_flame_lossIDX = $ini_array['nr_flame_lossIDX'];
-// END Device ID's
+	// END Device ID's
 
-// Set variables for cURL updates & call udevice function to update
-	$DOMOIPAddress = $ini_array['DOMOIPAddress'];
-	$DOMOPort = $ini_array['DOMOPort'];
-	$Username = $ini_array['Username'];
-	$Password = $ini_array['Password'];
-	$DOMOUpdate = $ini_array['DOMOUpdate'];
+	// Set variables for cURL updates & call udevice function to update
+	If ($DOMOUpdateAll == 1)
+		{
+		$DOMOpumphours_ch_dhw = udevice($pumphours_ch_dhwIDX, 0, $pumphours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOthreewayvalvehours = udevice($threewayvalvehoursIDX, 0, $threewayvalvehours, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOhours_ch_dhw = udevice($hours_ch_dhwIDX, 0, $hours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOhours_dhw = udevice($hours_dhwIDX, 0, $hours_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOpowerhours_ch_dhw = udevice($powerhours_ch_dhwIDX, 0, $powerhours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOpumpstarts_ch_dhw = udevice($pumpstarts_ch_dhwIDX, 0, $pumpstarts_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOnr_threewayvalvecycles = udevice($nr_threewayvalvecyclesIDX, 0, $nr_threewayvalvecycles, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOburnerstarts_dhw = udevice($burnerstarts_dhwIDX, 0, $burnerstarts_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOtot_burnerstarts_ch_dhw = udevice($tot_burnerstarts_ch_dhwIDX, 0, $tot_burnerstarts_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOfailed_burnerstarts = udevice($failed_burnerstartsIDX, 0, $failed_burnerstarts, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOnr_flame_loss = udevice($nr_flame_lossIDX, 0, $nr_flame_loss, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		echo "Domoticz Update: $DOMOUpdate Update All: $DOMOUpdateAll$newline";
+		}
+	else
+		{
+		$url = "http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=devices&filter=all&order=ID";
+		$json_string = file_get_contents($url);
+		$parsed_json = json_decode($json_string, true);
 
-	$DOMOpumphours_ch_dhw = udevice($pumphours_ch_dhwIDX, 0, $pumphours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOthreewayvalvehours = udevice($threewayvalvehoursIDX, 0, $threewayvalvehours, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOhours_ch_dhw = udevice($hours_ch_dhwIDX, 0, $hours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOhours_dhw = udevice($hours_dhwIDX, 0, $hours_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOpowerhours_ch_dhw = udevice($powerhours_ch_dhwIDX, 0, $powerhours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOpumpstarts_ch_dhw = udevice($pumpstarts_ch_dhwIDX, 0, $pumpstarts_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOnr_threewayvalvecycles = udevice($nr_threewayvalvecyclesIDX, 0, $nr_threewayvalvecycles, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOburnerstarts_dhw = udevice($burnerstarts_dhwIDX, 0, $burnerstarts_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOtot_burnerstarts_ch_dhw = udevice($tot_burnerstarts_ch_dhwIDX, 0, $tot_burnerstarts_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOfailed_burnerstarts = udevice($failed_burnerstartsIDX, 0, $failed_burnerstarts, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOnr_flame_loss = udevice($nr_flame_lossIDX, 0, $nr_flame_loss, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-// END set variables for cURL updates
+		$DOMOType = "Data";		// Lookup the 'Data' devices
+		$DOMOpumphours_ch_dhw_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $pumphours_ch_dhwIDX, $DOMOType));
+		If ($DOMOpumphours_ch_dhw_array != $pumphours_ch_dhw) {$DOMOpumphours_ch_dhw = udevice($pumphours_ch_dhwIDX, 0, $pumphours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+
+		$DOMOthreewayvalvehours_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $threewayvalvehoursIDX, $DOMOType));
+		If ($DOMOthreewayvalvehours_array != $threewayvalvehours) {$DOMOthreewayvalvehours = udevice($threewayvalvehoursIDX, 0, $threewayvalvehours, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+
+		$DOMOhours_ch_dhw_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $hours_ch_dhwIDX, $DOMOType));
+		If ($DOMOhours_ch_dhw != $hours_ch_dhw) {$DOMOhours_ch_dhw = udevice($hours_ch_dhwIDX, 0, $hours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+
+		$DOMOhours_dhw_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $hours_dhwIDX, $DOMOType));
+		If ($DOMOhours_dhw_array != $hours_dhw) {$DOMOhours_dhw = udevice($hours_dhwIDX, 0, $hours_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		
+		$DOMOpowerhours_ch_dhw_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $powerhours_ch_dhwIDX, $DOMOType));
+		If ($DOMOpowerhours_ch_dhw != $powerhours_ch_dhw) {$DOMOpowerhours_ch_dhw = udevice($powerhours_ch_dhwIDX, 0, $powerhours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+
+		$DOMOpumpstarts_ch_dhw_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $pumpstarts_ch_dhwIDX, $DOMOType));
+		If ($DOMOpumpstarts_ch_dhw_array != $pumpstarts_ch_dhw) {$DOMOpumpstarts_ch_dhw = udevice($pumpstarts_ch_dhwIDX, 0, $pumpstarts_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+
+		$DOMOnr_threewayvalvecycles_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $nr_threewayvalvecyclesIDX, $DOMOType));
+		If ($DOMOnr_threewayvalvecycles != $nr_threewayvalvecycles) {$DOMOnr_threewayvalvecycles = udevice($nr_threewayvalvecyclesIDX, 0, $nr_threewayvalvecycles, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+
+		$DOMOburnerstarts_dhw_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $burnerstarts_dhwIDX, $DOMOType));
+		If ($DOMOburnerstarts_dhw != $burnerstarts_dhw) {$DOMOburnerstarts_dhw = udevice($burnerstarts_dhwIDX, 0, $burnerstarts_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+
+		$DOMOtot_burnerstarts_ch_dhw_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $tot_burnerstarts_ch_dhwIDX, $DOMOType));
+		If ($DOMOtot_burnerstarts_ch_dhw != $tot_burnerstarts_ch_dhw) {$DOMOtot_burnerstarts_ch_dhw = udevice($tot_burnerstarts_ch_dhwIDX, 0, $tot_burnerstarts_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+
+		$DOMOfailed_burnerstarts_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $failed_burnerstartsIDX, $DOMOType));
+		If ($DOMOfailed_burnerstarts != $failed_burnerstarts) {$DOMOfailed_burnerstarts = udevice($failed_burnerstartsIDX, 0, $failed_burnerstarts, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+
+		$DOMOnr_flame_loss_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $nr_flame_lossIDX, $DOMOType));
+		If ($DOMOnr_flame_loss != $nr_flame_loss) {$DOMOnr_flame_loss = udevice($nr_flame_lossIDX, 0, $nr_flame_loss, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		}
+		// END set variables for cURL updates
 }
 ?>
