@@ -738,10 +738,6 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 		}
 	else
 		{
-		$url = "http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=devices&filter=all&order=ID";
-		$json_string = file_get_contents($url);
-		$parsed_json = json_decode($json_string, true);
-
 		$DOMOType = "Temp";		// Lookup the 'Temperature Devices'
 		$DOMOflowtemperature_array = array_lookup($parsed_json, $flowtemperatureIDX, $DOMOType);
 		If ($DOMOflowtemperature_array != $flowtemperature) {$DOMOflowtemperature = udevice($flowtemperatureIDX, 0, $flowtemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
@@ -1017,10 +1013,6 @@ function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data
 		}
 	else
 		{
-		$url = "http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=devices&filter=all&order=ID";
-		$json_string = file_get_contents($url);
-		$parsed_json = json_decode($json_string, true);
-
 		$DOMOType = "Data";		// Lookup the 'Data' devices
 		$DOMOpumphours_ch_dhw_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $pumphours_ch_dhwIDX, $DOMOType));
 		If ($DOMOpumphours_ch_dhw_array != $pumphours_ch_dhw) {$DOMOpumphours_ch_dhw = udevice($pumphours_ch_dhwIDX, 0, $pumphours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
