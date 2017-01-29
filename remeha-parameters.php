@@ -1,4 +1,4 @@
-﻿<style>
+<style>
   body {
   font-family: monaco, monospace;
   font-size: 0.7em;
@@ -31,6 +31,7 @@ $retries = $ini_array['retries'];
 $nanosleeptime =  $ini_array['nanosleeptime'];
 $echo_flag = "1";
 $newline = "<br />";
+$phpver = phpversion();
 
 $remeha_id1 = hex2bin($ini_array['remeha_id1']);
 $remeha_id2 = hex2bin($ini_array['remeha_id2']);
@@ -51,10 +52,9 @@ if (!$fp)
 	} 
 else
 	{
-	// cls();
 	stream_set_timeout($fp, 5);
-	
 	conditional_echo(str_repeat("=", 166) . "$newline", $echo_flag);
+	conditional_echo("PHP version: $phpver$newline", $echo_flag);	
 	conditional_echo("Connected to $ESPIPAddress:$ESPPort$newline", $echo_flag);
 	conditional_echo("Sending request...$newline", $echo_flag);
 	
@@ -218,7 +218,7 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 		}
 	else
 		{
-		if ($log_data == 1)
+		if (($log_data == 1) || ($log_data == 2))
 			{
 			$datatowrite = '**** CRC Error **** | ' . date_format($date, 'Y-m-d H:i:s') . ' | 02 ' . $hexstrPayload_param1 . ' ' . $hexstrCRC_param1 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param2 . ' ' . $hexstrCRC_param2 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param3 . ' ' . $hexstrCRC_param3 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param4 . ' ' . $hexstrCRC_param4 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param5 . ' ' . $hexstrCRC_param5 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param6 . ' ' . $hexstrCRC_param6 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param7 . ' ' . $hexstrCRC_param7 . ' ' .'03 | ' . '02 ' . $hexstrPayload_param8 . ' ' . $hexstrCRC_param8 . ' ' .'03 | ' . "\n";
 			file_put_contents($file, $datatowrite, FILE_APPEND);
@@ -328,9 +328,9 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 	if (($setpointraise_DHW < 0) || ($setpointraise_DHW > 20)) { $setpointraise_DHW = "ERROR";}
 	else { $setpointraise_DHW = $setpointraise_DHW ;}
 
-	$hystereses_calorifier = hexdec($decode_parameter["32"]);
-	if (($hystereses_calorifier < 2) || ($hystereses_calorifier > 15)) { $hystereses_calorifier = "ERROR";}
-	else { $hystereses_calorifier = $hystereses_calorifier ;}
+	$hysteresis_calorifier = hexdec($decode_parameter["32"]);
+	if (($hysteresis_calorifier < 2) || ($hysteresis_calorifier > 15)) { $hysteresis_calorifier = "ERROR";}
+	else { $hysteresis_calorifier = $hysteresis_calorifier ;}
 
 	$threewayvalve_standby = hexdec($decode_parameter["33"]);
 	if ($threewayvalve_standby == 0) { $threewayvalve_standby = "0:CH";}
@@ -440,9 +440,9 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 	if (($pump_CH_start < 0) || ($pump_CH_start > 100)) { $pump_CH_start = "ERROR";}
 	else { $pump_CH_start = $pump_CH_start ;}
 
-	$hysterese_CH = hexdec($decode_parameter["72"]);
-	if (($hysterese_CH < 1) || ($hysterese_CH > 10)) { $hysterese_CH = "ERROR";}
-	else { $hysterese_CH = $hysterese_CH ;}
+	$hysteresis_CH = hexdec($decode_parameter["72"]);
+	if (($hysteresis_CH < 1) || ($hysteresis_CH > 10)) { $hysteresis_CH = "ERROR";}
+	else { $hysteresis_CH = $hysteresis_CH ;}
 
 	$stabilisation_time = hexdec($decode_parameter["73"]);
 	if (($stabilisation_time < 10) || ($stabilisation_time > 180)) { $stabilisation_time = "ERROR";}
@@ -488,9 +488,9 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 	if (($warmup_interval < 0) || ($warmup_interval > 255)) { $warmup_interval = "ERROR";}
 	else { $warmup_interval = $warmup_interval ;}
 
-	$hysterese_warming_up = hexdec($decode_parameter["84"]);
-	if (($hysterese_warming_up < 0) || ($hysterese_warming_up > 20)) { $hysterese_warming_up = "ERROR";}
-	else { $hysterese_warming_up = $hysterese_warming_up ;}
+	$hysteresis_warming_up = hexdec($decode_parameter["84"]);
+	if (($hysteresis_warming_up < 0) || ($hysteresis_warming_up > 20)) { $hysteresis_warming_up = "ERROR";}
+	else { $hysteresis_warming_up = $hysteresis_warming_up ;}
 
 	$offset_warming_up = hexdecs($decode_parameter["85"]);
 	if (($offset_warming_up < -30) || ($offset_warming_up > 20)) { $$offset_warming_up = "ERROR";}
@@ -500,9 +500,9 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 	if (($DHW_start_raise < 0) || ($DHW_start_raise > 30)) { $DHW_start_raise = "ERROR";}
 	else { $DHW_start_raise = $DHW_start_raise ;}
 
-	$hysterese_DHW = hexdec($decode_parameter["87"]);
-	if (($hysterese_DHW < 1) || ($hysterese_DHW > 10)) { $hysterese_DHW = "ERROR";}
-	else { $hysterese_DHW = $hysterese_DHW ;}
+	$hysteresis_DHW = hexdec($decode_parameter["87"]);
+	if (($hysteresis_DHW < 1) || ($hysteresis_DHW > 10)) { $hysteresis_DHW = "ERROR";}
+	else { $hysteresis_DHW = $hysteresis_DHW ;}
 
 	$offset_DHW = hexdec($decode_parameter["88"]);
 	if (($offset_DHW < 0) || ($offset_DHW > 20)) { $offset_DHW = "ERROR";}
@@ -683,7 +683,7 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 	echo "Minimum outside temperature for Frost Protection: $temp_frostprotect$deg_symbol$newline";
 	echo "Anti-Legionella setting: $anti_legionella $newline";
 	echo "Setpoint raise at warming up of calorifier: $setpointraise_DHW$deg_symbol$newline";
-	echo "Switch on hystereses calorifier sensor: $hystereses_calorifier$deg_symbol$newline";
+	echo "Switch on hysteresis calorifier sensor: $hysteresis_calorifier$deg_symbol$newline";
 	echo "Three-way valve standby position: $threewayvalve_standby $newline";
 	echo "Boiler Type: $boiler_type $newline";
 	echo "Blocking Input: $blocking_input $newline";
@@ -710,7 +710,7 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 	echo "Modulate back when dT > this parameter: $startpoint_modul$deg_symbol $newline";
 	echo "Pump control, control range dT for CH: $pump_dTset_CH$deg_symbol $newline";
 	echo "Pump control, CH on start heatdemand: $pump_CH_start %$newline";
-	echo "Start hysteresis for CH: $hysterese_CH$deg_symbol $newline";
+	echo "Start hysteresis for CH: $hysteresis_CH$deg_symbol $newline";
 	echo "Stabilization time after burner start CH: $stabilisation_time seconds$newline";
 	echo "Minimum burner anti-cycle time: $min_burner_off minutes$newline";
 	echo "Maximum burner anti-cycle time: $max_burner_off minutes$newline";
@@ -722,10 +722,10 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 	echo "Pump control, DHW on start DHW demand: $pump_DHW_start %$newline";
 	echo "Warm up interval for DHW after CH: $warmup_interval_CH minutes$newline";
 	echo "Time between warming up starts boiler: $warmup_interval minutes$newline";
-	echo "Hysterese when warming up for DHW comfort: $hysterese_warming_up$deg_symbol $newline";
+	echo "Hysteresis when warming up for DHW comfort: $hysteresis_warming_up$deg_symbol $newline";
 	echo "Offset when warming up for DHW comfort: $offset_warming_up$deg_symbol $newline";
 	echo "DHW start raise depending op DHW flow: $DHW_start_raise $newline";
-	echo "Switch on hystereses DHW operation: $hysterese_DHW$deg_symbol $newline";
+	echo "Switch on hysteresis DHW operation: $hysteresis_DHW$deg_symbol $newline";
 	echo "Offset DHW: $offset_DHW$deg_symbol $newline";
 	echo "Temperature correction DHW for Tset, ww - Tret, plate heat exchanger: $offsett_p1_heatexchg$deg_symbol $newline";
 	echo "%Tf/Tr for DHW control temperature at pumpspeed 20%: $Tf_Tr_DHW_pump_20 %$newline";
