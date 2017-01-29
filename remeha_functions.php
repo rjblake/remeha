@@ -1,6 +1,18 @@
-﻿<?php
+<?php
 // Uncomment to report Errors for Debug purposes
 // error_reporting(E_ALL);
+
+// Function to lookup Domoticz Values from an array
+//
+function array_lookup($parsed_json, $DOMOIDX, $DOMOType)
+{
+	$parsed_json_result = $parsed_json['result'];
+	$key = array_search($DOMOIDX, array_column($parsed_json_result, 'idx'));
+	$DOMO_array = $parsed_json['result'][$key];
+	// echo "DOMOType: $DOMOType :";
+	$array_val = $DOMO_array[$DOMOType];
+	return $array_val;
+}
 
 // Function to update Domoticz Switches using cURL
 //
