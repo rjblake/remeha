@@ -1,2 +1,2 @@
 #!/bin/bash
-php -f calenta.php > /dev/null &
+php -f remeha.php > /dev/null &
