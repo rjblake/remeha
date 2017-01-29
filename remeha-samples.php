@@ -1,4 +1,4 @@
-﻿<style>
+<style>
   body {
   font-family: monaco, monospace;
   font-size: 0.7em;
@@ -31,6 +31,7 @@ $retries = $ini_array['retries'];
 $nanosleeptime =  $ini_array['nanosleeptime'];
 $echo_flag = "1";
 $newline = "<br />";
+$phpver = phpversion();
 
 $remeha_sample = hex2bin($ini_array['remeha_sample']);
 
@@ -43,8 +44,8 @@ else
 	{
 	stream_set_timeout($fp, 5);
 	// Collect Sample Data Info
-	echo 'Current PHP version: ' . phpversion().$newline;
 	conditional_echo(str_repeat("=", 166) . "$newline", $echo_flag);
+	conditional_echo("PHP version: $phpver$newline", $echo_flag);
 	conditional_echo("Connected to $ESPIPAddress:$ESPPort$newline", $echo_flag);
 	conditional_echo("Sending request...$newline", $echo_flag);
 	fwrite($fp,$remeha_sample, 10);
@@ -93,7 +94,7 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 		}
 	else
 		{
-		if ($log_data == 1)
+		if (($log_data == 1) || ($log_data == 2))
 			{
 			$datatowrite = '**** CRC Error **** | ' . date_format($date, 'Y-m-d H:i:s') . ' | 02 ' . $hexstrPayload . ' ' . $hexstrCRC . ' ' .'03| ' . "\n";
 			file_put_contents($file, $datatowrite, FILE_APPEND);
@@ -350,11 +351,13 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 // Mapping of Status & Sub-Status values
   	$state = hexdec($state);
 	$flame = "Off";
+	$ch_onoff = "Off";
+	$dhw_onoff = "Off";
 	if ($state == 0) {$state = "0:Standby";}
 	elseif ($state == 1) {$state = "1:Boiler start";}
 	elseif ($state == 2) {$state = "2:Burner start"; $flame = "On";}
-	elseif ($state == 3) {$state = "3:Burning CH"; $flame = "On";}
-	elseif ($state == 4) {$state = "4:Burning DHW"; $flame = "On";}
+	elseif ($state == 3) {$state = "3:Burning CH"; $flame = "On"; $ch_onoff = "On";}
+	elseif ($state == 4) {$state = "4:Burning DHW"; $flame = "On"; $dhw_onoff = "On";}
 	elseif ($state == 5) {$state = "5:Burner stop";}
 	elseif ($state == 6) {$state = "6:Boiler stop";}
 	elseif ($state == 7) {$state = "7:-";}
@@ -583,7 +586,7 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	echo "Lockout E: $lockout$newline";
 	echo "Blocking b: $blocking$newline";
 	echo "$newline";
-	echo "Flame is: $flame$newline";
+	echo "Flame is: $flame CH is: $ch_onoff DHW is: $dhw_onoff$newline ";
 	echo "Boiler fault: $fault$newline";
 	echo str_repeat("=", 80) . "$newline";
 // END Display Sample Data as Captured
@@ -625,6 +628,8 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$solartemperatureIDX = $ini_array['solartemperatureIDX'];
 	$flameIDX = $ini_array['flameIDX'];
 	$faultIDX = $ini_array['faultIDX'];
+	$ch_onoffIDX = $ini_array['ch_onoffIDX'];
+	$dhw_onoffIDX = $ini_array['dhw_onoffIDX'];
 // END Device ID's
 
 // Set variables for cURL updates & call udevice function to update
@@ -634,46 +639,164 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$Password = $ini_array['Password'];
 	$DOMOUpdate = $ini_array['DOMOUpdate'];
 
-	$DOMOflowtemperature = udevice($flowtemperatureIDX, 0, $flowtemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOreturntemperature = udevice($returntemperatureIDX, 0, $returntemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
- 	$DOMOdhwintemperature = udevice($dhwintemperatureIDX, 0, $dhwintemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
- 	$DOMOcalorifiertemperature = udevice($calorifiertemperatureIDX, 0, $calorifiertemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOoutsidetemperature = udevice($outsidetemperatureIDX, 0, $outsidetemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOcontroltemperature = udevice($controltemperatureIDX, 0, $controltemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOinternalsetpoint = udevice($internalsetpointIDX, 0, $internalsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOchsetpoint = udevice($chsetpointIDX, 0, $chsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOdhwsetpoint = udevice($dhwsetpointIDX, 0, $dhwsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOroomtemperature = udevice($roomtemperatureIDX, 0, $roomtemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOthermostat = udevice($thermostatIDX, 0, $thermostat, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOboilerctrltemp = udevice($boilerctrltemperatureIDX, 0, $boilerctrltemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOfanspeedsetpoint = udevice($fanspeedsetpointIDX, 0, $fanspeedsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOfanSpeed = udevice($fanspeedIDX, 0, $fanspeed, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOionisationCurent = udevice($ionisationcurrentIDX, 0, $ionisationcurrent, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOpumppower = udevice($pumppowerIDX, 0, $pumppower, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOpressure = udevice($pressureIDX, 0, $pressure, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOdhwflowrate = udevice($dhwflowrateIDX, 0, $dhwflowrate, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOrequiredoutput = udevice($requiredoutputIDX, 0, $requiredoutput, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOavailablepower = udevice($availablepowerIDX, 0, $availablepower, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOactualpower = udevice($actualpowerIDX, 0, $actualpower, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOmodulationdemand = udevice($modulationdemandIDX, 0, $heatrequest1, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOignition = udevice($ignitionIDX, 0, $ignition2, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOgas = udevice($gasIDX, 0, $gasvalve0, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOionisation = udevice($ionisationIDX, 0, $ionisation2, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOpump = udevice($pumpIDX, 0, $pump0, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOthreewayvalve = udevice($threewayvalveIDX, 0, $threewayvalve3, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOdhwrequest = udevice($dhwrequestIDX, 0, $heatrequest7, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOdhweco = udevice($dhwecoIDX, 0, $heatrequest4, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOstatus = udevice($stateIDX, 0, str_replace(' ', '%20', $state), $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOsolartemperature = udevice($solartemperatureIDX, 0, $solartemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOflame = swdevice($flameIDX, 0, $flame, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	if ($fault == "True")
-	{
-	$DOMOstatus = udevice($lockoutIDX, 0, str_replace(' ', '%20', $lockout), $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOstatus = udevice($blockingIDX, 0, str_replace(' ', '%20', $blocking), $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	$DOMOstatus = udevice($faultIDX, 0, $fault, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-	}
+	$url = "http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=devices&rid=$dhwsetpointIDX";
+	$json_string = file_get_contents($url);
+	$parsed_json = json_decode($json_string, true);	
+	$DOMOdevices_lastupdate = array_lookup($parsed_json, $dhwsetpointIDX, "LastUpdate");
+	$now = date('Y-m-d H:i:s');
+	$time_diff_mins = number_format((strtotime($now) - strtotime($DOMOdevices_lastupdate))/60, 2);
+	echo "Last Update: $DOMOdevices_lastupdate - Now: $now - Diff: $time_diff_mins<br />";
+	if ($time_diff_mins > 45) {$DOMOUpdateAll = 1;}
+	else {$DOMOUpdateAll = $ini_array['DOMOUpdateAll'];}
+	
+// Pull current values from Domoticz to see what needs an update
+		If ($DOMOUpdateAll == 1)
+		{
+		$DOMOflowtemperature = udevice($flowtemperatureIDX, 0, $flowtemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOreturntemperature = udevice($returntemperatureIDX, 0, $returntemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOdhwintemperature = udevice($dhwintemperatureIDX, 0, $dhwintemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOcalorifiertemperature = udevice($calorifiertemperatureIDX, 0, $calorifiertemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOoutsidetemperature = udevice($outsidetemperatureIDX, 0, $outsidetemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOcontroltemperature = udevice($controltemperatureIDX, 0, $controltemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOinternalsetpoint = udevice($internalsetpointIDX, 0, $internalsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOchsetpoint = udevice($chsetpointIDX, 0, $chsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOdhwsetpoint = udevice($dhwsetpointIDX, 0, $dhwsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOroomtemperature = udevice($roomtemperatureIDX, 0, $roomtemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOthermostat = udevice($thermostatIDX, 0, $thermostat, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOboilerctrltemperature = udevice($boilerctrltemperatureIDX, 0, $boilerctrltemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOsolartemperature = udevice($solartemperatureIDX, 0, $solartemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOfanspeedsetpoint = udevice($fanspeedsetpointIDX, 0, $fanspeedsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOfanspeed = udevice($fanspeedIDX, 0, $fanspeed, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOionisationcurrent = udevice($ionisationcurrentIDX, 0, $ionisationcurrent, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOpumppower = udevice($pumppowerIDX, 0, $pumppower, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOpressure = udevice($pressureIDX, 0, $pressure, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOdhwflowrate = udevice($dhwflowrateIDX, 0, $dhwflowrate, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOrequiredoutput = udevice($requiredoutputIDX, 0, $requiredoutput, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOavailablepower = udevice($availablepowerIDX, 0, $availablepower, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOactualpower = udevice($actualpowerIDX, 0, $actualpower, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOmodulationdemand = udevice($modulationdemandIDX, 0, $heatrequest1, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOignition = udevice($ignitionIDX, 0, $ignition2, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOgas = udevice($gasIDX, 0, $gasvalve0, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOionisation = udevice($ionisationIDX, 0, $ionisation2, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOpump = udevice($pumpIDX, 0, $pump0, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOthreewayvalve = udevice($threewayvalveIDX, 0, $threewayvalve3, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOdhwrequest = udevice($dhwrequestIDX, 0, $heatrequest7, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOdhweco = udevice($dhwecoIDX, 0, $heatrequest4, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOstatus = udevice($stateIDX, 0, str_replace(' ', '%20', $state), $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOflame = swdevice($flameIDX, 0, $flame, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOch_onoff = swdevice($ch_onoffIDX, 0, $ch_onoff, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+		$DOMOdhw_onoff = swdevice($dhw_onoffIDX, 0, $dhw_onoff, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 
+		if ($fault == "True")
+			{
+			$DOMOstatus = udevice($lockoutIDX, 0, str_replace(' ', '%20', $lockout), $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+			$DOMOstatus = udevice($blockingIDX, 0, str_replace(' ', '%20', $blocking), $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+			$DOMOstatus = udevice($faultIDX, 0, $fault, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+			}
+		echo "Domoticz Update: $DOMOUpdate Update All: $DOMOUpdateAll$newline";
+		}
+	Else
+		{
+		$url = "http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=devices&filter=all&order=ID";
+		$json_string = file_get_contents($url);
+		$parsed_json = json_decode($json_string, true);
 
+		$DOMOType = "Temp";		// Lookup the 'Temperature Devices'
+		$DOMOflowtemperature_array = array_lookup($parsed_json, $flowtemperatureIDX, $DOMOType);
+		If ($DOMOflowtemperature_array != $flowtemperature) {$DOMOflowtemperature = udevice($flowtemperatureIDX, 0, $flowtemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		$DOMOreturntemperature_array = array_lookup($parsed_json, $returntemperatureIDX, $DOMOType);
+		If ($DOMOreturntemperature_array != $returntemperature) {$DOMOreturntemperature = udevice($returntemperatureIDX, 0, $returntemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+ 		$DOMOdhwintemperature_array = array_lookup($parsed_json, $dhwintemperatureIDX, $DOMOType);
+		If ($DOMOdhwintemperature_array != $dhwintemperature) {$DOMOdhwintemperature = udevice($dhwintemperatureIDX, 0, $dhwintemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		$DOMOcalorifiertemperature_array = array_lookup($parsed_json, $calorifiertemperatureIDX, $DOMOType);
+		If ($DOMOcalorifiertemperature_array != $calorifiertemperature) {$DOMOcalorifiertemperature = udevice($calorifiertemperatureIDX, 0, $calorifiertemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		$DOMOoutsidetemperature_array = array_lookup($parsed_json, $outsidetemperatureIDX, $DOMOType);
+		If ($DOMOoutsidetemperature_array != $outsidetemperature) {$DOMOoutsidetemperature = udevice($outsidetemperatureIDX, 0, $outsidetemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		$DOMOcontroltemperature_array = array_lookup($parsed_json, $controltemperatureIDX, $DOMOType);
+		If ($DOMOcontroltemperature_array != $controltemperature) {$DOMOcontroltemperature = udevice($controltemperatureIDX, 0, $controltemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		$DOMOinternalsetpoint_array = array_lookup($parsed_json, $internalsetpointIDX, $DOMOType);
+		If ($DOMOinternalsetpoint_array != $internalsetpoint) {$DOMOinternalsetpoint = udevice($internalsetpointIDX, 0, $internalsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		$DOMOchsetpoint_array = array_lookup($parsed_json, $chsetpointIDX, $DOMOType);
+		If ($DOMOchsetpoint_array != $chsetpoint) {$DOMOchsetpoint = udevice($chsetpointIDX, 0, $chsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		$DOMOdhwsetpoint_array = array_lookup($parsed_json, $dhwsetpointIDX, $DOMOType);
+		If ($DOMOdhwsetpoint_array != $dhwsetpoint) {$DOMOdhwsetpoint = udevice($dhwsetpointIDX, 0, $dhwsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+
+		$DOMOroomtemperature_array = array_lookup($parsed_json, $roomtemperatureIDX, $DOMOType);
+		If ($DOMOroomtemperature_array != $roomtemperature) {$DOMOroomtemperature = udevice($roomtemperatureIDX, 0, $roomtemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		else {$DOMOroomtemperature = udevice($roomtemperatureIDX, 0, $roomtemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+	
+		$DOMOthermostat_array = array_lookup($parsed_json, $thermostatIDX, $DOMOType);
+		If ($DOMOthermostat_array != $thermostat) {$DOMOthermostat = udevice($thermostatIDX, 0, $thermostat, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		$DOMOboilerctrltemperature_array = array_lookup($parsed_json, $boilerctrltemperatureIDX, $DOMOType);
+		If ($DOMOboilerctrltemperature_array != $boilerctrltemperature) {$DOMOboilerctrltemperature = udevice($boilerctrltemperatureIDX, 0, $boilerctrltemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		$DOMOsolartemperature_array = array_lookup($parsed_json, $solartemperatureIDX, $DOMOType);
+		If ($DOMOsolartemperature_array != $solartemperature) {$DOMOsolartemperature = udevice($solartemperatureIDX, 0, $solartemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		
+		$DOMOType = "Data";
+		$DOMOfanspeedsetpoint_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $fanspeedsetpointIDX, $DOMOType));
+		If ($DOMOfanspeedsetpoint_array != $fanspeedsetpoint) {$DOMOfanspeedsetpoint = udevice($fanspeedsetpointIDX, 0, $fanspeedsetpoint, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		$DOMOfanspeed_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $fanspeedIDX, $DOMOType));
+		If ($DOMOfanspeed_array != $fanspeed) {$DOMOfanspeed = udevice($fanspeedIDX, 0, $fanspeed, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		$DOMOionisationcurrent_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $ionisationcurrentIDX, $DOMOType));
+		If ($DOMOionisationcurrent_array != $ionisationcurrent) {$DOMOionisationcurrent = udevice($ionisationcurrentIDX, 0, $ionisationcurrent, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+
+		$DOMOpumppower_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $pumppowerIDX, $DOMOType));
+		If ($DOMOpumppower_array != $pumppower) {$DOMOpumppower = udevice($pumppowerIDX, 0, $pumppower, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		$DOMOpressure_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $pressureIDX, $DOMOType));
+		If ($DOMOpressure_array != $pressure) {$DOMOpressure = udevice($pressureIDX, 0, $pressure, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		$DOMOdhwflowrate_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $dhwflowrateIDX, $DOMOType));
+		If ($DOMOdhwflowrate_array != $dhwflowrate) {$DOMOdhwflowrate = udevice($dhwflowrateIDX, 0, $dhwflowrate, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		$DOMOrequiredoutput_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $requiredoutputIDX, $DOMOType));
+		If ($DOMOrequiredoutput_array != $requiredoutput) {$DOMOrequiredoutput = udevice($requiredoutputIDX, 0, $requiredoutput, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		$DOMOavailablepower_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $availablepowerIDX, $DOMOType));
+		If ($DOMOavailablepower_array != $availablepower) {$DOMOavailablepower = udevice($availablepowerIDX, 0, $availablepower, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		$DOMOactualpower_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $actualpowerIDX, $DOMOType));
+		If ($DOMOactualpower_array != $actualpower) {$DOMOactualpower = udevice($actualpowerIDX, 0, $actualpower, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+	
+		$DOMOmodulationdemand_array = array_lookup($parsed_json, $modulationdemandIDX, $DOMOType);
+		If ($DOMOmodulationdemand_array != $heatrequest1) {$DOMOmodulationdemand = udevice($modulationdemandIDX, 0, $heatrequest1, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+	
+		$DOMOignition_array = array_lookup($parsed_json, $ignitionIDX, $DOMOType);
+		If ($DOMOignition_array != $ignition2) {$DOMOignition = udevice($ignitionIDX, 0, $ignition2, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+	
+		$DOMOgas_array = array_lookup($parsed_json, $gasIDX, $DOMOType);
+		If ($DOMOgas_array != $gasvalve0) {$DOMOgas = udevice($gasIDX, 0, $gasvalve0, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+	
+		$DOMOionisation_array = array_lookup($parsed_json, $ionisationIDX, $DOMOType);
+		If ($DOMOionisation_array != $ionisation2) {$DOMOionisation = udevice($ionisationIDX, 0, $ionisation2, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+	
+		$DOMOpump_array = array_lookup($parsed_json, $pumpIDX, $DOMOType);
+		If ($DOMOpump_array != $pump0) {$DOMOpump = udevice($pumpIDX, 0, $pump0, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+
+		$DOMOthreewayvalve_array = array_lookup($parsed_json, $threewayvalveIDX, $DOMOType);
+		If ($DOMOthreewayvalve_array != $threewayvalve3) {$DOMOthreewayvalve = udevice($threewayvalveIDX, 0, $threewayvalve3, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+	
+		$DOMOdhwrequest_array = array_lookup($parsed_json, $dhwrequestIDX, $DOMOType);
+		If ($DOMOdhwrequest_array != $heatrequest7) {$DOMOdhwrequest = udevice($dhwrequestIDX, 0, $heatrequest7, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+
+		$DOMOdhweco_array = array_lookup($parsed_json, $dhwecoIDX, $DOMOType);
+		If ($DOMOdhweco_array != $heatrequest4) {$DOMOdhweco = udevice($dhwecoIDX, 0, $heatrequest4, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+	
+		$DOMOstatus_array = str_replace(' ', '%20', array_lookup($parsed_json, $stateIDX, $DOMOType));
+		If ($DOMOstatus_array != str_replace(' ', '%20', $state)) {$DOMOstatus = udevice($stateIDX, 0, str_replace(' ', '%20', $state), $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+
+		$DOMOflame_array = array_lookup($parsed_json, $flameIDX, $DOMOType);
+		If ($DOMOflame_array != $flame) {$DOMOflame = swdevice($flameIDX, 0, $flame, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+	
+		$DOMOch_onoff_array = array_lookup($parsed_json, $ch_onoffIDX, $DOMOType);
+		If ($DOMOch_onoff_array != $ch_onoff) {$DOMOch_onoff = swdevice($ch_onoffIDX, 0, $ch_onoff, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+	
+		$DOMOdhw_onoff_array = array_lookup($parsed_json, $dhw_onoffIDX, $DOMOType);
+		If ($DOMOdhw_onoff_array != $dhw_onoff) {$DOMOdhw_onoff = swdevice($dhw_onoffIDX, 0, $dhw_onoff, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+	
+		if ($fault == "True")
+			{
+			$DOMOstatus = udevice($lockoutIDX, 0, str_replace(' ', '%20', $lockout), $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+			$DOMOstatus = udevice($blockingIDX, 0, str_replace(' ', '%20', $blocking), $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+			$DOMOstatus = udevice($faultIDX, 0, $fault, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+			}
+		echo "Domoticz Update: $DOMOUpdate Update All: $DOMOUpdateAll$newline";			
+		}
 // END set variables for cURL updates
 }
 
