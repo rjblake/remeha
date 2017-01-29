@@ -1,4 +1,4 @@
-﻿<style>
+<style>
   body {
   font-family: monaco, monospace;
   font-size: 0.7em;
@@ -31,6 +31,7 @@ $retries = $ini_array['retries'];
 $nanosleeptime =  $ini_array['nanosleeptime'];
 $echo_flag = "1";
 $newline = "<br />";
+$phpver = phpversion();
 
 $remeha_counter1 = hex2bin($ini_array['remeha_counter1']);
 $remeha_counter2 = hex2bin($ini_array['remeha_counter2']);
@@ -47,6 +48,7 @@ else
 	stream_set_timeout($fp, 5);
 	// Collect Counter Info
 	conditional_echo(str_repeat("=", 80) . "$newline", $echo_flag);
+	conditional_echo("PHP version: $phpver$newline", $echo_flag);
 	conditional_echo("Connected to $ESPIPAddress:$ESPPort$newline", $echo_flag);
 	conditional_echo("Sending request...$newline", $echo_flag);
 	fwrite($fp,$remeha_counter1, 10);
@@ -135,7 +137,7 @@ function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data
 		}
 	else
 		{
-		if ($log_data == 1)
+		if (($log_data == 1) || ($log_data == 2))
 			{
 			$datatowrite = '**** CRC Error **** | ' . date_format($date, 'Y-m-d H:i:s') . ' | 02 ' . $hexstrPayload_cnt1 . ' ' . $hexstrCRC_cnt1 . ' ' .'03 | ' . '02 ' . $hexstrPayload_cnt2 . ' ' . $hexstrCRC_cnt2 . ' ' .'03 | ' . '02 ' . $hexstrPayload_cnt3 . ' ' . $hexstrCRC_cnt3 . ' ' .'03 | ' . '02 ' . $hexstrPayload_cnt4 . ' ' . $hexstrCRC_cnt4 . ' ' .'03 |' . "\n";
 			file_put_contents($file, $datatowrite, FILE_APPEND);
