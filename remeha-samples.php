@@ -697,10 +697,6 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 		}
 	Else
 		{
-		$url = "http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=devices&filter=all&order=ID";
-		$json_string = file_get_contents($url);
-		$parsed_json = json_decode($json_string, true);
-
 		$DOMOType = "Temp";		// Lookup the 'Temperature Devices'
 		$DOMOflowtemperature_array = array_lookup($parsed_json, $flowtemperatureIDX, $DOMOType);
 		If ($DOMOflowtemperature_array != $flowtemperature) {$DOMOflowtemperature = udevice($flowtemperatureIDX, 0, $flowtemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
