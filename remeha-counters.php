@@ -133,7 +133,7 @@ function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data
 			file_put_contents($file, $datatowrite, FILE_APPEND);
 			conditional_echo("Data written to log: $file$newline", $echo_flag);
 			}
-		conditional_echo(str_repeat("=", 80) . "$newline$newline", $echo_flag);
+		conditional_echo(str_repeat("=", 80) . "$newline", $echo_flag);
 		}
 	else
 		{
@@ -189,7 +189,7 @@ function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data
 
 	// START Display Counters
 	echo "Counters Received: " . date_format($date, 'Y-m-d H:i:s') . "$newline";
-	echo str_repeat("=", 40) . "$newline";
+	echo str_repeat("=", 80) . "$newline";
 	echo "Hours run pump CH+DHW: $pumphours_ch_dhw hours$newline";
 	echo "Hours run 3-way valve DHW: $threewayvalvehours hours$newline";
 	echo "Hours run CH+DHW: $hours_ch_dhw hours$newline";
@@ -201,7 +201,7 @@ function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data
 	echo "Total Burner Starts CH+DHW: $tot_burnerstarts_ch_dhw starts$newline";
 	echo "Failed burner starts: $failed_burnerstarts starts$newline";
 	echo "Number of flame loss: $nr_flame_loss times$newline";
-	echo str_repeat("=", 40) . "$newline";
+	echo str_repeat("=", 80) . "$newline";
 	// END Display Counters
 
 	// Update Domoticz Devices with collected values
@@ -225,15 +225,16 @@ function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data
 	$Username = $ini_array['Username'];
 	$Password = $ini_array['Password'];
 	$DOMOUpdate = $ini_array['DOMOUpdate'];
+	$DOMOUpdateInterval = $ini_array['DOMOUpdateInterval'];
 
-	$url = "http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=devices&rid=$dhwsetpointIDX";
+	$url = "http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=devices&filter=all&order=ID";
 	$json_string = file_get_contents($url);
 	$parsed_json = json_decode($json_string, true);	
-	$DOMOdevices_lastupdate = array_lookup($parsed_json, $dhwsetpointIDX, "LastUpdate");
+	$DOMOdevices_lastupdate = array_lookup($parsed_json, $pumphours_ch_dhwIDX, "LastUpdate");
 	$now = date('Y-m-d H:i:s');
 	$time_diff_mins = number_format((strtotime($now) - strtotime($DOMOdevices_lastupdate))/60, 2);
-	echo "Last Update: $DOMOdevices_lastupdate - Now: $now - Diff: $time_diff_mins<br />";
-	if ($time_diff_mins > 45) {$DOMOUpdateAll = 1;}
+	echo "Last Update:$DOMOdevices_lastupdate Time Now:$now Elapsed:$time_diff_mins<br />";
+	if ($time_diff_mins > $DOMOUpdateInterval) {$DOMOUpdateAll = 1;}
 	else {$DOMOUpdateAll = $ini_array['DOMOUpdateAll'];}
 
 	// Set variables for cURL updates & call udevice function to update
@@ -250,14 +251,14 @@ function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data
 		$DOMOtot_burnerstarts_ch_dhw = udevice($tot_burnerstarts_ch_dhwIDX, 0, $tot_burnerstarts_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 		$DOMOfailed_burnerstarts = udevice($failed_burnerstartsIDX, 0, $failed_burnerstarts, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 		$DOMOnr_flame_loss = udevice($nr_flame_lossIDX, 0, $nr_flame_loss, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
-		echo "Domoticz Update: $DOMOUpdate Update All: $DOMOUpdateAll$newline";
+		echo "Update All: Domoticz Update:$DOMOUpdate Update All:$DOMOUpdateAll$newline";
+		echo str_repeat("=", 80) . "$newline";
 		}
 	else
 		{
 		$DOMOType = "Data";		// Lookup the 'Data' devices
 		$DOMOpumphours_ch_dhw_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $pumphours_ch_dhwIDX, $DOMOType));
 		If ($DOMOpumphours_ch_dhw_array != $pumphours_ch_dhw) {$DOMOpumphours_ch_dhw = udevice($pumphours_ch_dhwIDX, 0, $pumphours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
-
 		$DOMOthreewayvalvehours_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $threewayvalvehoursIDX, $DOMOType));
 		If ($DOMOthreewayvalvehours_array != $threewayvalvehours) {$DOMOthreewayvalvehours = udevice($threewayvalvehoursIDX, 0, $threewayvalvehours, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
 
@@ -287,6 +288,8 @@ function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data
 
 		$DOMOnr_flame_loss_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $nr_flame_lossIDX, $DOMOType));
 		If ($DOMOnr_flame_loss != $nr_flame_loss) {$DOMOnr_flame_loss = udevice($nr_flame_lossIDX, 0, $nr_flame_loss, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		echo "Update Changes Only: Domoticz Update:$DOMOUpdate Update All:$DOMOUpdateAll$newline";
+		echo str_repeat("=", 80) . "$newline";
 		}
 		// END set variables for cURL updates
 }
