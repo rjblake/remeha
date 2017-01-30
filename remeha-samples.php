@@ -90,7 +90,7 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 			file_put_contents($file, $datatowrite, FILE_APPEND);
 			conditional_echo("Data written to log: $file$newline", $echo_flag);
 			}
-		conditional_echo(str_repeat("=", 166) . "$newline$newline", $echo_flag);
+		conditional_echo(str_repeat("=", 166) . "$newline", $echo_flag);
 		}
 	else
 		{
@@ -521,7 +521,7 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 // END mapping of Status, Sub-Status, Lockout & Blocking values
 
 // START Display Sample Data as Captured
-	echo str_repeat("=", 80) . "$newline";
+	// echo str_repeat("=", 80) . "$newline";
 	echo "Sample Data Received: " . date_format($date, 'Y-m-d H:i:s') . "$newline";
 	echo str_repeat("=", 80) . "$newline";
 	echo "Flow Temperature: $flowtemperature$deg_symbol$newline";
@@ -638,19 +638,21 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$Username = $ini_array['Username'];
 	$Password = $ini_array['Password'];
 	$DOMOUpdate = $ini_array['DOMOUpdate'];
+	$DOMOUpdateInterval = $ini_array['DOMOUpdateInterval'];
 
-	$url = "http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=devices&rid=$dhwsetpointIDX";
+	$url = "http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=devices&filter=all&order=ID";
+	$url = "http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=devices&rid=$pumphours_ch_dhwIDX";
 	$json_string = file_get_contents($url);
 	$parsed_json = json_decode($json_string, true);	
 	$DOMOdevices_lastupdate = array_lookup($parsed_json, $dhwsetpointIDX, "LastUpdate");
 	$now = date('Y-m-d H:i:s');
 	$time_diff_mins = number_format((strtotime($now) - strtotime($DOMOdevices_lastupdate))/60, 2);
-	echo "Last Update: $DOMOdevices_lastupdate - Now: $now - Diff: $time_diff_mins<br />";
-	if ($time_diff_mins > 45) {$DOMOUpdateAll = 1;}
+	echo "Last Update:$DOMOdevices_lastupdate Time Now:$now Elapsed:$time_diff_mins<br />";
+	if ($time_diff_mins > $DOMOUpdateInterval) {$DOMOUpdateAll = 1;}
 	else {$DOMOUpdateAll = $ini_array['DOMOUpdateAll'];}
 	
 // Pull current values from Domoticz to see what needs an update
-		If ($DOMOUpdateAll == 1)
+	If ($DOMOUpdateAll == 1)
 		{
 		$DOMOflowtemperature = udevice($flowtemperatureIDX, 0, $flowtemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 		$DOMOreturntemperature = udevice($returntemperatureIDX, 0, $returntemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
@@ -693,10 +695,15 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 			$DOMOstatus = udevice($blockingIDX, 0, str_replace(' ', '%20', $blocking), $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 			$DOMOstatus = udevice($faultIDX, 0, $fault, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 			}
-		echo "Domoticz Update: $DOMOUpdate Update All: $DOMOUpdateAll$newline";
+		echo "Update All: Domoticz Update:$DOMOUpdate Update All:$DOMOUpdateAll$newline";
+		echo str_repeat("=", 80) . "$newline";	
 		}
 	Else
 		{
+		$url = "http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=devices&filter=all&order=ID";
+		$json_string = file_get_contents($url);
+		$parsed_json = json_decode($json_string, true);	
+
 		$DOMOType = "Temp";		// Lookup the 'Temperature Devices'
 		$DOMOflowtemperature_array = array_lookup($parsed_json, $flowtemperatureIDX, $DOMOType);
 		If ($DOMOflowtemperature_array != $flowtemperature) {$DOMOflowtemperature = udevice($flowtemperatureIDX, 0, $flowtemperature, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
@@ -791,7 +798,8 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 			$DOMOstatus = udevice($blockingIDX, 0, str_replace(' ', '%20', $blocking), $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 			$DOMOstatus = udevice($faultIDX, 0, $fault, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 			}
-		echo "Domoticz Update: $DOMOUpdate Update All: $DOMOUpdateAll$newline";			
+		echo "Update Changes Only: Domoticz Update:$DOMOUpdate Update All:$DOMOUpdateAll$newline";
+		echo str_repeat("=", 80) . "$newline";
 		}
 // END set variables for cURL updates
 }
