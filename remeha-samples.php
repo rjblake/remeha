@@ -62,9 +62,8 @@ else
 // Time to 'Work the SAMPLE Data'
 //
 function sample_data_dump($data_sample, $echo_flag, $newline)
-{
-
-// Manipulate data & Do a CRC Check	
+	{
+	// Manipulate data & Do a CRC Check	
 	$decode = str_split($data_sample, 2);
 	$hexstr = str_split($data_sample, 148);
 	$hexstrPayload = substr($data_sample, 2, 140);
@@ -76,7 +75,7 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$log_data = $ini_array['log_data'];
 	$path = $ini_array['path_to_logs'];
 	$filename = $ini_array['sample_data_log'];
-	$deg_symbol = "&degC";
+	$deg_symbol = $ini_array['deg_symbol'];
 	$file = "$path$filename";
 	date_default_timezone_set('Europe/Amsterdam');
 	$date = date_create();
@@ -105,7 +104,7 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 		return;		# Don't continue with updating Sample data
 		}
 
-// Sample Data Info	
+	// Sample Data Info	
 	$flowtemperature = $decode["8"];
 	$flowtemperature .= $decode["7"];   
 	$returntemperature = $decode["10"];
@@ -118,7 +117,7 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$outsidetemperature .= $decode["13"];
 	if ($outsidetemperature == 8000) {$outsidetemperature = 0.00;}
 	else {$outsidetemperature == $outsidetemperature;} 	  
-	$calorifiertemperature = $decode["16"]; # Documented as Byte 15, but doesn't seem to make sense
+	$calorifiertemperature = $decode["16"];
 	$calorifiertemperature .= $decode["15"];
 	if ($calorifiertemperature == 8000) {$calorifiertemperature = 0.00;}
 	else {$calorifiertemperature == $calorifiertemperature;}
@@ -161,10 +160,9 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$solartemperature .= $decode["63"];
 	if ($solartemperature == 8000) {$solartemperature = 0.00;}
 	else {$solartemperature == $solartemperature;}
+	// END Sample Data Info
 
-// END Sample Data Info
-
-//Convert Hex2Dec
+	//Convert Hex2Dec
   	$flowtemperature = number_format(hexdecs($flowtemperature)/100, 2);
 	$returntemperature = number_format(hexdecs($returntemperature)/100, 2);
 	$dhwintemperature = number_format(hexdecs($dhwintemperature)/100, 2);
@@ -187,164 +185,163 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$controltemperature = number_format(hexdecs($controltemperature)/100, 2);
 	$dhwflowrate = number_format(hexdecs($dhwflowrate)/100, 2);
 	$solartemperature = number_format(hexdecs($solartemperature)/100, 2);
-
-// END Convert Hex2Dec
+	// END Convert Hex2Dec
 
 	// Translate 'bits' to useful stuff
 	// Modulating Controller Connected
 	$heatrequestBIT0 = nbit(hexdec($heatrequest), 0);
 	if ($heatrequestBIT0 == 0) {$heatrequestTXT0 = "No";}
 	elseif ($heatrequestBIT0 == 1) {$heatrequestTXT0 = "Yes";}
-	$heatrequest0 = "$heatrequestBIT0:$heatrequestTXT0";
+	$mod_ctl_connected = "$heatrequestBIT0:$heatrequestTXT0";
 	
 	// Heat demand from mod. controller
 	$heatrequestBIT1 = nbit(hexdec($heatrequest), 1);
 	if ($heatrequestBIT1 == 0) {$heatrequestTXT1 = "No"; $ch_onoff = "Central Heating is: Off";}
 	elseif ($heatrequestBIT1 == 1) {$heatrequestTXT1 = "Yes"; $ch_onoff = "Central Heating is: On";}
-	$heatrequest1 = "$heatrequestBIT1:$heatrequestTXT1";
+	$heatdemand_mod_ctl = "$heatrequestBIT1:$heatrequestTXT1";
 
 	// Heat demand from on/off controller
 	$heatrequestBIT2 = nbit(hexdec($heatrequest), 2);
 	if ($heatrequestBIT2 == 0) {$heatrequestTXT2 = "No";}
 	elseif ($heatrequestBIT2 == 1) {$heatrequestTXT2 = "Yes";}
-	$heatrequest2 = "$heatrequestBIT2:$heatrequestTXT2";
+	$heatdemand_onoff_ctl = "$heatrequestBIT2:$heatrequestTXT2";
 
 	// Frost protection
 	$heatrequestBIT3 = nbit(hexdec($heatrequest), 3);
 	if ($heatrequestBIT3 == 0) {$heatrequestTXT3 = "No";}
 	elseif ($heatrequestBIT3 == 1) {$heatrequestTXT3 = "Yes";}
-	$heatrequest3 = "$heatrequestBIT3:$heatrequestTXT3";
+	$frost_protection = "$heatrequestBIT3:$heatrequestTXT3";
 
 	// DHW Eco - INVERT
 	$heatrequestBIT4 = nbit(hexdec($heatrequest), 4);
 	if (nbit($heatrequestBIT4,4) == 0) {$heatrequestTXT4 = "Yes";}
 	elseif (nbit($heatrequestBIT4,4) == 1) {$heatrequestTXT4 = "No";}
-	$heatrequest4 = "$heatrequestBIT4:$heatrequestTXT4";
+	$dhw_eco = "$heatrequestBIT4:$heatrequestTXT4";
 
 	// DHW Blocking
 	$heatrequestBIT5 = nbit(hexdec($heatrequest), 5);
 	if ($heatrequestBIT5 == 0) {$heatrequestTXT5 = "No";}
 	elseif ($heatrequestBIT5 == 1) {$heatrequestTXT5 = "Yes";}
-	$heatrequest5 = "$heatrequestBIT5:$heatrequestTXT5";
+	$dhw_blocking = "$heatrequestBIT5:$heatrequestTXT5";
 
 	// Anti-Legionella
 	$heatrequestBIT6 = nbit(hexdec($heatrequest), 6);
 	if ($heatrequestBIT6 == 0) {$heatrequestTXT6 = "No";}
 	elseif ($heatrequestBIT6 == 1) {$heatrequestTXT6 = "Yes";}
-	$heatrequest6 = "$heatrequestBIT6:$heatrequestTXT6";
+	$anti_legionella = "$heatrequestBIT6:$heatrequestTXT6";
 
 	// DHW heat demand	
 	$heatrequestBIT7 = nbit(hexdec($heatrequest), 7);
 	if ($heatrequestBIT7 == 0) {$heatrequestTXT7 = "No"; $dhw_onoff = "Domestic Hot Water is: Off";}
 	elseif ($heatrequestBIT7 == 1) {$heatrequestTXT7 = "Yes"; $dhw_onoff = "Domestic Hot Water is: On";}
-	$heatrequest7 = "$heatrequestBIT7:$heatrequestTXT7";
+	$dhw_heat_demand = "$heatrequestBIT7:$heatrequestTXT7";
 
 	// Shutdown Input - INVERT
 	$ionisationBIT0 = nbit(hexdec($ionisation), 0);
 	if ($ionisationBIT0 == 0) {$ionisationTXT0 = "Closed";}
 	elseif ($ionisationBIT0 == 1) {$ionisationTXT0 = "Open";}
-	$ionisation0 = "$ionisationBIT0:$ionisationTXT0";
+	$shutdown_input = "$ionisationBIT0:$ionisationTXT0";
 
 	// Release Input - INVERT
 	$ionisationBIT1 = nbit(hexdec($ionisation), 1);
 	if ($ionisationBIT1 == 0) {$ionisationTXT1 = "Closed";}
 	elseif ($ionisationBIT1 == 1) {$ionisationTXT1 = "Open";}
 	else {$ionisationTXT1 = "UNKNOWN";}
-	$ionisation1 = "$ionisationBIT1:$ionisationTXT1";
+	$release_input = "$ionisationBIT1:$ionisationTXT1";
 
 	// Ionisation
 	$ionisationBIT2 = nbit(hexdec($ionisation), 2);
 	if ($ionisationBIT2 == 0) {$ionisationTXT2 = "No";}
 	elseif ($ionisationBIT2 == 1) {$ionisationTXT2 = "Yes";}
 	else {$ionisationTXT2 = "UNKNOWN";}
-	$ionisation2 = "$ionisationBIT2:$ionisationTXT2";
+	$ionisation = "$ionisationBIT2:$ionisationTXT2";
 
 	// Flow Switch for detecting DHW
 	$ionisationBIT3 = nbit(hexdec($ionisation), 3);
 	if ($ionisationBIT3 == 0) {$ionisationTXT3 = "Open";}
 	elseif ($ionisationBIT3 == 1) {$ionisationTXT3 = "Closed";}
 	else {$ionisationTXT3 = "UNKNOWN";}
-	$ionisation3 = "$ionisationBIT3:$ionisationTXT3";
+	$flowswitch_dhw = "$ionisationBIT3:$ionisationTXT3";
 
 	// Min. Gas Pressure
 	$ionisationBIT5 = nbit(hexdec($ionisation), 5);
 	if ($ionisationBIT5 == 0) {$ionisationTXT5 = "Open";}
 	elseif ($ionisationBIT5 == 1) {$ionisationTXT5 = "Closed";}
 	else {$ionisationTXT5 = "UNKNOWN";}
-	$ionisation5 = "$ionisationBIT5:$ionisationTXT5";
+	$min_gas_pressure = "$ionisationBIT5:$ionisationTXT5";
 
 	// CH Enable
 	$ionisationBIT6 = nbit(hexdec($ionisation), 6);
 	if ($ionisationBIT6 == 0) {$ionisationTXT6 = "No";}
 	elseif ($ionisationBIT6 == 1) {$ionisationTXT6 = "Yes";}
 	else {$ionisationTXT6 = "UNKNOWN";}
-	$ionisation6 = "$ionisationBIT6:$ionisationTXT6";
+	$ch_enabled = "$ionisationBIT6:$ionisationTXT6";
 
 	// DHW Enable
 	$ionisationBIT7 = nbit(hexdec($ionisation), 7);
 	if ($ionisationBIT7 == 0) {$ionisationTXT2 = "No";}
 	elseif ($ionisationBIT7 == 1) {$ionisationTXT7 = "Yes";}
-	$ionisation7 = "$ionisationBIT7:$ionisationTXT7";
+	$dhw_enabled = "$ionisationBIT7:$ionisationTXT7";
 
 	// Gas valve - INVERT
 	$gasvalveBIT0 = nbit(hexdec($valves), 0);
 	if ($gasvalveBIT0 == 0) {$gasvalveTXT0 = "Open";}
 	elseif ($gasvalveBIT0 == 1) {$gasvalveTXT0 = "Closed";}
-	$gasvalve0 = "$gasvalveBIT0:$gasvalveTXT0";
+	$gasvalve = "$gasvalveBIT0:$gasvalveTXT0";
 
 	// Ignition
 	$ignitionBIT2 = nbit(hexdec($valves), 2);
 	if ($ignitionBIT2 == 0) {$ignitionTXT2 = "Off";}
 	elseif ($ignitionBIT2 == 1) {$ignitionTXT2 = "On";}
-	$ignition2 = "$ignitionBIT2:$ignitionTXT2";
+	$ignition = "$ignitionBIT2:$ignitionTXT2";
 
 	// 3-way valve
 	$threewayvalveBIT3 = nbit(hexdec($valves), 3);
 	if ($threewayvalveBIT3 == 0) {$threewayvalveTXT3 = "CH";}
 	elseif ($threewayvalveBIT3 == 1) {$threewayvalveTXT3 = "DHW";}
-	$threewayvalve3 = "$threewayvalveBIT3:$threewayvalveTXT3";
+	$threewayvalve = "$threewayvalveBIT3:$threewayvalveTXT3";
 
 	// External 3-way valve
 	$threewayvalveBIT4 = nbit(hexdec($valves), 4);
 	if ($threewayvalveBIT4 == 0) {$threewayvalveTXT4 = "Open";}
 	elseif ($threewayvalveBIT4 == 1) {$threewayvalveTXT4 = "Closed";}
-	$threewayvalve4 = "$threewayvalveBIT4:$threewayvalveTXT4";
+	$threewayvalve_external = "$threewayvalveBIT4:$threewayvalveTXT4";
 
 	// External Gas valve
 	$gasvalveBIT6 = nbit(hexdec($valves), 6);
 	if ($gasvalveBIT6 == 0) {$gasvalveTXT6 = "Closed";}
 	elseif ($gasvalveBIT6 == 1) {$gasvalveTXT6 = "Open";}
-	$gasvalve6 = "$gasvalveBIT6:$gasvalveTXT6";
+	$gasvalve_external = "$gasvalveBIT6:$gasvalveTXT6";
 
 	// Pump
 	$pumpBIT0 = nbit(hexdec($pump), 0);
 	if ($pumpBIT0 == 0) {$pumpTXT0 = "Off";}
 	elseif ($pumpBIT0 == 1) {$pumpTXT0 = "On";}
-	$pump0 = "$pumpBIT0:$pumpTXT0";
+	$pump = "$pumpBIT0:$pumpTXT0";
 
 	// Calorifier Pump
 	$pumpBIT1 = nbit(hexdec($pump), 1);
 	if ($pumpBIT1 == 0) {$pumpTXT1 = "Open";}
 	elseif ($pumpBIT1 == 1) {$pumpTXT1 = "Closed";}
-	$pump1 = "$pumpBIT1:$pumpTXT1";
+	$calorifier_pump = "$pumpBIT1:$pumpTXT1";
 
 	// External CH Pump
 	$pumpBIT2 = nbit(hexdec($pump), 2);
 	if ($pumpBIT2 == 0) {$pumpTXT2 = "Off";}
 	elseif ($pumpBIT2 == 1) {$pumpTXT2 = "On";}
-	$pump2 = "$pumpBIT2:$pumpTXT2";
+	$ch_pump_external = "$pumpBIT2:$pumpTXT2";
 
 	// Status report
 	$pumpBIT4 = nbit(hexdec($pump), 4);
 	if ($pumpBIT4 == 0) {$pumpTXT4 = "Open";}
 	elseif ($pumpBIT4 == 1) {$pumpTXT4 = "Closed";}
-	$pump4 = "$pumpBIT4:$pumpTXT4";
+	$status_report = "$pumpBIT4:$pumpTXT4";
 
 	// Opentherm Smart Power
 	$pumpBIT7 = nbit(hexdec($pump), 7);
 	if ($pumpBIT7 == 0) {$pumpTXT7 = "Off";}
 	elseif ($pumpBIT7 == 1) {$pumpTXT7 = "On";}
-	$pump7 = "$pumpBIT7:$pumpTXT7";
+	$opentherm_smartpower = "$pumpBIT7:$pumpTXT7";
 	// END translate 'bits' to useful stuff
 
 	// Mapping of Status & Sub-Status values
@@ -545,37 +542,37 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	echo "Actual Power from boiler: $actualpower"."%$newline";
 	echo "$newline";
 	echo "Valve Flags: 0"."$gasvalveBIT6"."0"."$threewayvalveBIT4$threewayvalveBIT3$ignitionBIT2"."0"."$gasvalveBIT0$newline";
-	echo "Gas Valve[0]: $gasvalve0$newline";
-	echo "Ignition[2]: $ignition2$newline";
-	echo "3-Way Valve[3]: $threewayvalve3$newline";
-	echo "External 3-Way Valve[4]: $threewayvalve4$newline";
-	echo "External Gas Valve[6]: $gasvalve6$newline";
+	echo "Gas Valve[0]: $gasvalve$newline";
+	echo "Ignition[2]: $ignition$newline";
+	echo "3-Way Valve[3]: $threewayvalve$newline";
+	echo "External 3-Way Valve[4]: $threewayvalve_external$newline";
+	echo "External Gas Valve[6]: $gasvalve_external$newline";
 	echo "$newline";
 	echo "Pump Flags: $pumpBIT7"."00"."$pumpBIT4"."0"."$pumpBIT2$pumpBIT1$pumpBIT0$newline";
-	echo "Pump[0]: $pump0$newline";
-	echo "Calorifier Pump[1]: $pump1$newline";
-	echo "External CH Pump[2]: $pump2$newline";
-	echo "Status Report[4]: $pump4$newline";
-	echo "Opentherm Smart Power[7]: $pump7$newline";
+	echo "Pump[0]: $pump$newline";
+	echo "Calorifier Pump[1]: $calorifier_pump$newline";
+	echo "External CH Pump[2]: $ch_pump_external$newline";
+	echo "Status Report[4]: $status_report$newline";
+	echo "Opentherm Smart Power[7]: $opentherm_smartpower$newline";
 	echo "$newline";
 	echo "Input Flags: $ionisationBIT7$ionisationBIT6$ionisationBIT5"."0"."$ionisationBIT3$ionisationBIT2$ionisationBIT1$ionisationBIT0$newline";
-	echo "Shut down Input[0]: $ionisation0$newline";
-	echo "Release Input[1]: $ionisation1$newline";
-	echo "Ionisation[2]: $ionisation2$newline";
-	echo "Flow Switch Detecting DHW[3]: $ionisation3$newline";
-	echo "Minimum Gas Pressure[5]: $ionisation5$newline";
-	echo "CH Enable[6]: $ionisation6$newline";
-	echo "DHW Enable[7]: $ionisation7$newline";
+	echo "Shut down Input[0]: $shutdown_input$newline";
+	echo "Release Input[1]: $release_input$newline";
+	echo "Ionisation[2]: $ionisation$newline";
+	echo "Flow Switch Detecting DHW[3]: $flowswitch_dhw$newline";
+	echo "Minimum Gas Pressure[5]: $min_gas_pressure$newline";
+	echo "CH Enable[6]: $ch_enabled$newline";
+	echo "DHW Enable[7]: $dhw_enabled$newline";
 	echo "$newline";
 	echo "Heat Request Flags: $heatrequestBIT7$heatrequestBIT6$heatrequestBIT5$heatrequestBIT4$heatrequestBIT3$heatrequestBIT2$heatrequestBIT1$heatrequestBIT0$newline";	
-	echo "Mod.controller Connected[0]: $heatrequest0$newline";
-	echo "Heat Demand from Modulating Controller[1]: $heatrequest1$newline";
-	echo "Heat Demand from ON/OFF controller[2]: $heatrequest2$newline";
-	echo "Heat Demand from Frost Protection[3]: $heatrequest3$newline";
-	echo "DHW Eco[4]: $heatrequest4$newline";
-	echo "DHW Blocking[5]: $heatrequest5$newline";
-	echo "Heat Demand from Anti Legionella[6]: $heatrequest6$newline";
-	echo "Heat Demand from DHW[7]: $heatrequest7$newline";
+	echo "Mod.controller Connected[0]: $mod_ctl_connected$newline";
+	echo "Heat Demand from Modulating Controller[1]: $heatdemand_mod_ctl$newline";
+	echo "Heat Demand from ON/OFF controller[2]: $heatdemand_onoff_ctl$newline";
+	echo "Heat Demand from Frost Protection[3]: $frost_protection$newline";
+	echo "DHW Eco[4]: $dhw_eco$newline";
+	echo "DHW Blocking[5]: $dhw_blocking$newline";
+	echo "Heat Demand from Anti Legionella[6]: $anti_legionella$newline";
+	echo "Heat Demand from DHW[7]: $dhw_heat_demand$newline";
 	echo "$newline";
 	echo "Combined State/Sub-State: $state$newline";
 	echo "$newline";
@@ -676,106 +673,106 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 		$DOMOType = "Data";
 		
 		$DOMOmodulationdemand_array = array_lookup($parsed_json, $modulationdemandIDX, $DOMOType);
-		if ($DOMOmodulationdemand_array != $heatrequest1)
+		if ($DOMOmodulationdemand_array != $heatdemand_mod_ctl)
 			{
-			if ($heatrequest1 != "0:No")
+			if ($heatdemand_mod_ctl != "0:No")
 				{
-				$DOMOmodulationdemand = udevice($modulationdemandIDX, 2, $heatrequest1, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOmodulationdemand = udevice($modulationdemandIDX, 2, $heatdemand_mod_ctl, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			else
 				{
-				$DOMOmodulationdemand = udevice($modulationdemandIDX, 0, $heatrequest1, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOmodulationdemand = udevice($modulationdemandIDX, 0, $heatdemand_mod_ctl, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			}
 	
 		$DOMOignition_array = array_lookup($parsed_json, $ignitionIDX, $DOMOType);
-		if ($DOMOignition_array != $ignition2)
+		if ($DOMOignition_array != $ignition)
 			{
-			if ($ignition2 != "0:Off")
+			if ($ignition != "0:Off")
 				{
-				$DOMOignition = udevice($ignitionIDX, 1, $ignition2, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOignition = udevice($ignitionIDX, 1, $ignition, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			else
 				{
-				$DOMOignition = udevice($ignitionIDX, 0, $ignition2, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOignition = udevice($ignitionIDX, 0, $ignition, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			}
 
 		$DOMOgas_array = array_lookup($parsed_json, $gasIDX, $DOMOType);
-		if ($DOMOgas_array != $gasvalve0)
+		if ($DOMOgas_array != $gasvalve)
 			{
-			if ($gasvalve0 != "1:Closed")
+			if ($gasvalve != "1:Closed")
 				{
-				$DOMOgas = udevice($gasIDX, 2, $gasvalve0, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOgas = udevice($gasIDX, 2, $gasvalve, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			else
 				{
-				$DOMOgas = udevice($gasIDX, 0, $gasvalve0, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOgas = udevice($gasIDX, 0, $gasvalve, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			}
 	
 		$DOMOionisation_array = array_lookup($parsed_json, $ionisationIDX, $DOMOType);
-		if ($DOMOionisation_array != $ionisation2)
+		if ($DOMOionisation_array != $ionisation)
 			{
-			if ($ionisation2 != "0:No")
+			if ($ionisation != "0:No")
 				{
-				$DOMOionisation = udevice($ionisationIDX, 2, $ionisation2, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOionisation = udevice($ionisationIDX, 2, $ionisation, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			else
 				{
-				$DOMOionisation = udevice($ionisationIDX, 0, $ionisation2, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOionisation = udevice($ionisationIDX, 0, $ionisation, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			}
 	
 		$DOMOpump_array = array_lookup($parsed_json, $pumpIDX, $DOMOType);
-		if ($DOMOpump_array != $pump0)
+		if ($DOMOpump_array != $pump)
 			{
-			if ($pump0 != "0:Off")
+			if ($pump != "0:Off")
 				{
-				$DOMOpump = udevice($pumpIDX, 2, $pump0, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOpump = udevice($pumpIDX, 2, $pump, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			else
 				{
-				$DOMOpump = udevice($pumpIDX, 0, $pump0, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOpump = udevice($pumpIDX, 0, $pump, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			}
 
 		$DOMOthreewayvalve_array = array_lookup($parsed_json, $threewayvalveIDX, $DOMOType);
-		if ($DOMOthreewayvalve_array != $threewayvalve3)
+		if ($DOMOthreewayvalve_array != $threewayvalve)
 			{
-			If ($threewayvalve3 == "1:DHW")
+			If ($threewayvalve == "1:DHW")
 				{
-				$DOMOthreewayvalve = udevice($threewayvalveIDX, 1, $threewayvalve3, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOthreewayvalve = udevice($threewayvalveIDX, 1, $threewayvalve, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
-			elseif ($threewayvalve3 == "0:CH")
+			elseif ($threewayvalve == "0:CH")
 				{
-				$DOMOthreewayvalve = udevice($threewayvalveIDX, 2, $threewayvalve3, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);				
+				$DOMOthreewayvalve = udevice($threewayvalveIDX, 2, $threewayvalve, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);				
 				}
 			}
 	
 		$DOMOdhwrequest_array = array_lookup($parsed_json, $dhwrequestIDX, $DOMOType);
-		if ($DOMOdhwrequest_array != $heatrequest7)
+		if ($DOMOdhwrequest_array != $dhw_heat_demand)
 			{
-			if ($heatrequest7 != "0:No")
+			if ($dhw_heat_demand != "0:No")
 				{
-				$DOMOdhwrequest = udevice($dhwrequestIDX, 2, $heatrequest7, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOdhwrequest = udevice($dhwrequestIDX, 2, $dhw_heat_demand, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			else
 				{
-				$DOMOdhwrequest = udevice($dhwrequestIDX, 0, $heatrequest7, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOdhwrequest = udevice($dhwrequestIDX, 0, $dhw_heat_demand, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			}
 
 		$DOMOdhweco_array = array_lookup($parsed_json, $dhwecoIDX, $DOMOType);
-		if ($DOMOdhweco_array != $heatrequest4)
+		if ($DOMOdhweco_array != $dhw_eco)
 			{
 			if (heatrequest4 != "1:No")
 				{
-				$DOMOdhweco = udevice($dhwecoIDX, 1, $heatrequest4, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOdhweco = udevice($dhwecoIDX, 1, $dhw_eco, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			else
 				{
-				$DOMOdhweco = udevice($dhwecoIDX, 4, $heatrequest4, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOdhweco = udevice($dhwecoIDX, 4, $dhw_eco, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			}
 
@@ -909,106 +906,106 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 		if ($DOMOactualpower_array != $actualpower) {$DOMOactualpower = udevice($actualpowerIDX, 0, $actualpower, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
 
 		$DOMOmodulationdemand_array = array_lookup($parsed_json, $modulationdemandIDX, $DOMOType);
-		if ($DOMOmodulationdemand_array != $heatrequest1)
+		if ($DOMOmodulationdemand_array != $heatdemand_mod_ctl)
 			{
-			if ($heatrequest1 != "0:No")
+			if ($heatdemand_mod_ctl != "0:No")
 				{
-				$DOMOmodulationdemand = udevice($modulationdemandIDX, 2, $heatrequest1, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOmodulationdemand = udevice($modulationdemandIDX, 2, $heatdemand_mod_ctl, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			else
 				{
-				$DOMOmodulationdemand = udevice($modulationdemandIDX, 0, $heatrequest1, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOmodulationdemand = udevice($modulationdemandIDX, 0, $heatdemand_mod_ctl, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			}
 	
 		$DOMOignition_array = array_lookup($parsed_json, $ignitionIDX, $DOMOType);
-		if ($DOMOignition_array != $ignition2)
+		if ($DOMOignition_array != $ignition)
 			{
-			if ($ignition2 != "0:Off")
+			if ($ignition != "0:Off")
 				{
-				$DOMOignition = udevice($ignitionIDX, 1, $ignition2, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOignition = udevice($ignitionIDX, 1, $ignition, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			else
 				{
-				$DOMOignition = udevice($ignitionIDX, 0, $ignition2, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOignition = udevice($ignitionIDX, 0, $ignition, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			}
 
 		$DOMOgas_array = array_lookup($parsed_json, $gasIDX, $DOMOType);
-		if ($DOMOgas_array != $gasvalve0)
+		if ($DOMOgas_array != $gasvalve)
 			{
-			if ($gasvalve0 != "1:Closed")
+			if ($gasvalve != "1:Closed")
 				{
-				$DOMOgas = udevice($gasIDX, 2, $gasvalve0, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOgas = udevice($gasIDX, 2, $gasvalve, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			else
 				{
-				$DOMOgas = udevice($gasIDX, 0, $gasvalve0, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOgas = udevice($gasIDX, 0, $gasvalve, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			}
 	
 		$DOMOionisation_array = array_lookup($parsed_json, $ionisationIDX, $DOMOType);
-		if ($DOMOionisation_array != $ionisation2)
+		if ($DOMOionisation_array != $ionisation)
 			{
-			if ($ionisation2 != "0:No")
+			if ($ionisation != "0:No")
 				{
-				$DOMOionisation = udevice($ionisationIDX, 2, $ionisation2, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOionisation = udevice($ionisationIDX, 2, $ionisation, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			else
 				{
-				$DOMOionisation = udevice($ionisationIDX, 0, $ionisation2, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOionisation = udevice($ionisationIDX, 0, $ionisation, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			}
 	
 		$DOMOpump_array = array_lookup($parsed_json, $pumpIDX, $DOMOType);
-		if ($DOMOpump_array != $pump0)
+		if ($DOMOpump_array != $pump)
 			{
-			if ($pump0 != "0:Off")
+			if ($pump != "0:Off")
 				{
-				$DOMOpump = udevice($pumpIDX, 2, $pump0, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOpump = udevice($pumpIDX, 2, $pump, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			else
 				{
-				$DOMOpump = udevice($pumpIDX, 0, $pump0, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOpump = udevice($pumpIDX, 0, $pump, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			}
 
 		$DOMOthreewayvalve_array = array_lookup($parsed_json, $threewayvalveIDX, $DOMOType);
-		if ($DOMOthreewayvalve_array != $threewayvalve3)
+		if ($DOMOthreewayvalve_array != $threewayvalve)
 			{
-			If ($threewayvalve3 == "1:DHW")
+			If ($threewayvalve == "1:DHW")
 				{
-				$DOMOthreewayvalve = udevice($threewayvalveIDX, 1, $threewayvalve3, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOthreewayvalve = udevice($threewayvalveIDX, 1, $threewayvalve, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
-			elseif ($threewayvalve3 == "0:CH")
+			elseif ($threewayvalve == "0:CH")
 				{
-				$DOMOthreewayvalve = udevice($threewayvalveIDX, 2, $threewayvalve3, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);				
+				$DOMOthreewayvalve = udevice($threewayvalveIDX, 2, $threewayvalve, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);				
 				}
 			}
 	
 		$DOMOdhwrequest_array = array_lookup($parsed_json, $dhwrequestIDX, $DOMOType);
-		if ($DOMOdhwrequest_array != $heatrequest7)
+		if ($DOMOdhwrequest_array != $dhw_heat_demand)
 			{
-			if ($heatrequest7 != "0:No")
+			if ($dhw_heat_demand != "0:No")
 				{
-				$DOMOdhwrequest = udevice($dhwrequestIDX, 2, $heatrequest7, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOdhwrequest = udevice($dhwrequestIDX, 2, $dhw_heat_demand, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			else
 				{
-				$DOMOdhwrequest = udevice($dhwrequestIDX, 0, $heatrequest7, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOdhwrequest = udevice($dhwrequestIDX, 0, $dhw_heat_demand, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			}
 
 		$DOMOdhweco_array = array_lookup($parsed_json, $dhwecoIDX, $DOMOType);
-		if ($DOMOdhweco_array != $heatrequest4)
+		if ($DOMOdhweco_array != $dhw_eco)
 			{
 			if (heatrequest4 != "1:No")
 				{
-				$DOMOdhweco = udevice($dhwecoIDX, 1, $heatrequest4, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOdhweco = udevice($dhwecoIDX, 1, $dhw_eco, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			else
 				{
-				$DOMOdhweco = udevice($dhwecoIDX, 4, $heatrequest4, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				$DOMOdhweco = udevice($dhwecoIDX, 4, $dhw_eco, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			}
 
@@ -1084,6 +1081,5 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 		echo str_repeat("=", 80) . "$newline";
 		}
 		// END set variables for cURL updates
-}
-
+	}
 ?>
