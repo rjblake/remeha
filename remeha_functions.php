@@ -18,7 +18,7 @@ function array_lookup($parsed_json, $DOMOIDX, $DOMOType)
 //
 function swdevice($idx, $nvalue, $svalue, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate)
 {
-	if ($DOMOUpdate == "1")
+	if ($DOMOUpdate == 1)
 	{	
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -27,12 +27,6 @@ function swdevice($idx, $nvalue, $svalue, $DOMOIPAddress, $DOMOPort, $Username, 
 		curl_close($ch);
 		// Sleep for 1/4 sec - in case system stressed/slow
 		// usleep(250000);
-
-	}
-	else
-	{
-		$newline ="<br />";
-		echo "Debug Info: IDX:$idx Value:$svalue - http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=command&ampparam=switchlight&idx=$idx&nvalue=$nvalue&switchcmd=$svalue$newline";
 	}
 }
 
@@ -40,21 +34,15 @@ function swdevice($idx, $nvalue, $svalue, $DOMOIPAddress, $DOMOPort, $Username, 
 //
 function udevice($idx, $nvalue, $svalue, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate)
 {
-	if ($DOMOUpdate == "1")
+	if ($DOMOUpdate == 1)
 	{	
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_URL, "http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=command&param=udevice&idx=$idx&nvalue=$nvalue&svalue=$svalue");	
+		curl_setopt($ch, CURLOPT_URL, "http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=command&param=udevice&idx=$idx&nvalue=$nvalue&svalue=$svalue");
 		curl_exec($ch);
 		curl_close($ch);
 		// Sleep for 1/4 sec - in case system stressed/slow
 		// usleep(250000);
-
-	}
-	else
-	{
-		$newline ="<br />";
-		echo "Debug Info: IDX:$idx Value:$svalue - http://$Username:$Password@$DOMOIPAddress:$DOMOPort/json.htm?type=command&ampparam=udevice&idx=$idx&nvalue=$nvalue&svalue=$svalue$newline";
 	}
 }
 
@@ -160,7 +148,7 @@ function connect_to_esp($ESPIPAddress, $ESPPort, $retries, $newline)
 	$retry = 0;
 	
 	// Keep looping until connected or met no. of retries if $retries is not zero
-	while (!$connected && ($retries==0 || ($retries>0 && $retry<$retries)))
+	while (!$connected && ($retries == 0 || ($retries > 0 && $retry < $retries)))
 	{
 		// try connecting to the ESP8266
 		$fp = fsockopen($ESPIPAddress, $ESPPort, $errno, $errstr, 5);
