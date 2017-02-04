@@ -259,6 +259,7 @@ function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data
 		$DOMOType = "Data";		// Lookup the 'Data' devices
 		$DOMOpumphours_ch_dhw_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $pumphours_ch_dhwIDX, $DOMOType));
 		If ($DOMOpumphours_ch_dhw_array != $pumphours_ch_dhw) {$DOMOpumphours_ch_dhw = udevice($pumphours_ch_dhwIDX, 0, $pumphours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+
 		$DOMOthreewayvalvehours_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $threewayvalvehoursIDX, $DOMOType));
 		If ($DOMOthreewayvalvehours_array != $threewayvalvehours) {$DOMOthreewayvalvehours = udevice($threewayvalvehoursIDX, 0, $threewayvalvehours, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
 
