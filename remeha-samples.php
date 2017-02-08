@@ -28,7 +28,6 @@ $ini_array = parse_ini_file("remeha.ini");
 $ESPIPAddress = $ini_array['ESPIPAddress'];
 $ESPPort = $ini_array['ESPPort'];
 $retries = $ini_array['retries'];
-$nanosleeptime =  $ini_array['nanosleeptime'];
 $echo_flag = "1";
 $newline = "<br />";
 $phpver = phpversion();
@@ -55,8 +54,6 @@ else
 	conditional_echo("Sample Data read: $data_sampleU$newline", $echo_flag);
 	$output = sample_data_dump($data_sample, $echo_flag, $newline);
 	fclose($fp);
-	sleep($sleeptime);
-	$sample_cycle++;
 	}
 
 // Time to 'Work the SAMPLE Data'
