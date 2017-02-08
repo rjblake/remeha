@@ -197,7 +197,8 @@ function cls()
 	}
 
 }
-
+// If PHP5 < V5.5 or not PHP7.0, this function does not exist, so create an 'array_column() function
+//
 if (! function_exists('array_column')) {
     function array_column(array $input, $columnKey, $indexKey = null) {
         $array = array();
