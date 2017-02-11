@@ -19,7 +19,7 @@ h3 {
 
 <?php
 // Uncomment to report Errors for Debug purposes
-// error_reporting(E_ALL);
+error_reporting(E_ALL);
 require('remeha_functions.php');
 
 // remeha.ini file Variables
@@ -43,7 +43,7 @@ else
 	{
 	stream_set_timeout($fp, 5);
 	// Collect Sample Data Info
-	conditional_echo(str_repeat("=", 166) . "$newline", $echo_flag);
+	conditional_echo(str_repeat("=", 166) . $newline, $echo_flag);
 	conditional_echo("PHP version: $phpver$newline", $echo_flag);
 	conditional_echo("Connected to $ESPIPAddress:$ESPPort$newline", $echo_flag);
 	conditional_echo("Sending request...$newline", $echo_flag);
@@ -86,7 +86,7 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 			file_put_contents($file, $datatowrite, FILE_APPEND);
 			conditional_echo("Data written to log: $file$newline", $echo_flag);
 			}
-		conditional_echo(str_repeat("=", 166) . "$newline", $echo_flag);
+		conditional_echo(str_repeat("=", 166) . $newline, $echo_flag);
 		}
 	else
 		{
@@ -96,7 +96,7 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 			file_put_contents($file, $datatowrite, FILE_APPEND);
 			conditional_echo("Data written to log: $file$newline", $echo_flag);
 			}
-		conditional_echo("$newline", $echo_flag);
+		conditional_echo($newline, $echo_flag);
 		conditional_echo("************** CRC ERROR!!!! ***********$newline", $echo_flag);
 		return;		# Don't continue with updating Sample data
 		}
@@ -108,16 +108,10 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$returntemperature .= $decode["9"];
 	$dhwintemperature = $decode["12"];
 	$dhwintemperature .= $decode["11"];
-	if ($dhwintemperature == 8000) {$dhwintemperature = 0.00;}
-	else {$dhwintemperature == $dhwintemperature;}
 	$outsidetemperature = $decode["14"];
 	$outsidetemperature .= $decode["13"];
-	if ($outsidetemperature == 8000) {$outsidetemperature = 0.00;}
-	else {$outsidetemperature == $outsidetemperature;} 	  
 	$calorifiertemperature = $decode["16"];
 	$calorifiertemperature .= $decode["15"];
-	if ($calorifiertemperature == 8000) {$calorifiertemperature = 0.00;}
-	else {$calorifiertemperature == $calorifiertemperature;}
 	$boilerctrltemperature = $decode["20"];
 	$boilerctrltemperature .= $decode["19"];
 	$roomtemperature = $decode["22"];
@@ -140,31 +134,38 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$pumppower = $decode["37"];
 	$requiredoutput = $decode["39"];
 	$actualpower = $decode["40"];
-	$heatrequest = $decode["43"];
-	$ionisation = $decode["44"];
-	$valves = $decode["45"];
-	$pump = $decode["46"];
+	$heatrequestbits = $decode["43"];
+	$heatrequestbitsbin = sprintf("%08d", base_convert($heatrequestbits, 16, 2));
+	$ionisationbits = $decode["44"];
+	$ionisationbitsbin = sprintf("%08d", base_convert($ionisationbits, 16, 2));
+	$valvesbits = $decode["45"];
+	$valvesbitsbin = sprintf("%08d", base_convert($valvesbits, 16, 2));
+	$pumpbits = $decode["46"];
+	$pumpbitsbin = sprintf("%08d", base_convert($pumpbits, 16, 2));
 	$state = $decode["47"];
 	$lockout = $decode["48"];
 	$blocking = $decode["49"];
 	$substate = $decode["50"];  
 	$pressure = $decode["56"];
+	$hruactivebits = $decode["57"];
+	$hruactivebitsbin = sprintf("%08d", base_convert($hruactivebits, 16, 2));
 	$controltemperature = $decode["59"];
 	$controltemperature .= $decode["58"];
 	$dhwflowrate = $decode["61"];
 	$dhwflowrate .= $decode["60"];
 	$solartemperature = $decode["64"];
 	$solartemperature .= $decode["63"];
-	if ($solartemperature == 8000) {$solartemperature = 0.00;}
-	else {$solartemperature == $solartemperature;}
 	// END Sample Data Info
 
 	//Convert Hex2Dec
   	$flowtemperature = number_format(hexdecs($flowtemperature)/100, 2);
 	$returntemperature = number_format(hexdecs($returntemperature)/100, 2);
-	$dhwintemperature = number_format(hexdecs($dhwintemperature)/100, 2);
-	$outsidetemperature = number_format(hexdecs($outsidetemperature)/100, 2);
-	$calorifiertemperature = number_format(hexdecs($calorifiertemperature)/100, 2);
+	if ($dhwintemperature == 8000) {$dhwintemperature = "Open";}
+	else {$dhwintemperature = number_format(hexdecs($dhwintemperature)/100, 2);}
+	if ($outsidetemperature == 8000) {$outsidetemperature = "Open";}
+	else {$outsidetemperature = number_format(hexdecs($outsidetemperature)/100, 2);}
+	if ($calorifiertemperature == 'f380') {$calorifiertemperature = "Open";}
+	else {$calorifiertemperature = number_format(hexdecs($calorifiertemperature)/100, 2);}
 	$boilerctrltemperature = number_format(hexdecs($boilerctrltemperature)/100, 2);
 	$roomtemperature = number_format(hexdecs($roomtemperature)/100, 2);
 	$chsetpoint = number_format(hexdecs($chsetpoint)/100, 2);
@@ -181,164 +182,171 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$pressure = number_format(hexdec($pressure)/10, 1);
 	$controltemperature = number_format(hexdecs($controltemperature)/100, 2);
 	$dhwflowrate = number_format(hexdecs($dhwflowrate)/100, 2);
-	$solartemperature = number_format(hexdecs($solartemperature)/100, 2);
+	if ($solartemperature == 8000) {$solartemperature = "Open";}
+	else {$solartemperature = number_format(hexdecs($solartemperature)/100, 2);}
 	// END Convert Hex2Dec
 
 	// Translate 'bits' to useful stuff
 	// Modulating Controller Connected
-	$heatrequestBIT0 = nbit(hexdec($heatrequest), 0);
+	$heatrequestBIT0 = (hexdec($heatrequestbits) >> 0) & 1;
 	if ($heatrequestBIT0 == 0) {$heatrequestTXT0 = "No";}
 	elseif ($heatrequestBIT0 == 1) {$heatrequestTXT0 = "Yes";}
 	$mod_ctl_connected = "$heatrequestBIT0:$heatrequestTXT0";
 	
 	// Heat demand from mod. controller
-	$heatrequestBIT1 = nbit(hexdec($heatrequest), 1);
+	$heatrequestBIT1 = (hexdec($heatrequestbits) >> 1) & 1;
 	if ($heatrequestBIT1 == 0) {$heatrequestTXT1 = "No"; $ch_onoff = "Central Heating is: Off";}
 	elseif ($heatrequestBIT1 == 1) {$heatrequestTXT1 = "Yes"; $ch_onoff = "Central Heating is: On";}
 	$heatdemand_mod_ctl = "$heatrequestBIT1:$heatrequestTXT1";
 
 	// Heat demand from on/off controller
-	$heatrequestBIT2 = nbit(hexdec($heatrequest), 2);
+	$heatrequestBIT2 = (hexdec($heatrequestbits) >> 2) & 1;
 	if ($heatrequestBIT2 == 0) {$heatrequestTXT2 = "No";}
 	elseif ($heatrequestBIT2 == 1) {$heatrequestTXT2 = "Yes";}
 	$heatdemand_onoff_ctl = "$heatrequestBIT2:$heatrequestTXT2";
 
 	// Frost protection
-	$heatrequestBIT3 = nbit(hexdec($heatrequest), 3);
+	$heatrequestBIT3 = (hexdec($heatrequestbits) >> 3) & 1;
 	if ($heatrequestBIT3 == 0) {$heatrequestTXT3 = "No";}
 	elseif ($heatrequestBIT3 == 1) {$heatrequestTXT3 = "Yes";}
 	$frost_protection = "$heatrequestBIT3:$heatrequestTXT3";
 
 	// DHW Eco - INVERT
-	$heatrequestBIT4 = nbit(hexdec($heatrequest), 4);
+	$heatrequestBIT4 = (hexdec($heatrequestbits) >> 4) & 1;
 	if (nbit($heatrequestBIT4,4) == 0) {$heatrequestTXT4 = "Yes";}
 	elseif (nbit($heatrequestBIT4,4) == 1) {$heatrequestTXT4 = "No";}
 	$dhw_eco = "$heatrequestBIT4:$heatrequestTXT4";
 
 	// DHW Blocking
-	$heatrequestBIT5 = nbit(hexdec($heatrequest), 5);
+	$heatrequestBIT5 = (hexdec($heatrequestbits) >> 5) & 1;
 	if ($heatrequestBIT5 == 0) {$heatrequestTXT5 = "No";}
 	elseif ($heatrequestBIT5 == 1) {$heatrequestTXT5 = "Yes";}
 	$dhw_blocking = "$heatrequestBIT5:$heatrequestTXT5";
 
 	// Anti-Legionella
-	$heatrequestBIT6 = nbit(hexdec($heatrequest), 6);
+	$heatrequestBIT6 = (hexdec($heatrequestbits) >> 6) & 1;
 	if ($heatrequestBIT6 == 0) {$heatrequestTXT6 = "No";}
 	elseif ($heatrequestBIT6 == 1) {$heatrequestTXT6 = "Yes";}
 	$anti_legionella = "$heatrequestBIT6:$heatrequestTXT6";
 
 	// DHW heat demand	
-	$heatrequestBIT7 = nbit(hexdec($heatrequest), 7);
+	$heatrequestBIT7 = (hexdec($heatrequestbits) >> 7) & 1;
 	if ($heatrequestBIT7 == 0) {$heatrequestTXT7 = "No"; $dhw_onoff = "Domestic Hot Water is: Off";}
 	elseif ($heatrequestBIT7 == 1) {$heatrequestTXT7 = "Yes"; $dhw_onoff = "Domestic Hot Water is: On";}
 	$dhw_heat_demand = "$heatrequestBIT7:$heatrequestTXT7";
 
 	// Shutdown Input - INVERT
-	$ionisationBIT0 = nbit(hexdec($ionisation), 0);
+	$ionisationBIT0 = (hexdec($ionisationbits) >> 0) & 1;
 	if ($ionisationBIT0 == 0) {$ionisationTXT0 = "Closed";}
 	elseif ($ionisationBIT0 == 1) {$ionisationTXT0 = "Open";}
 	$shutdown_input = "$ionisationBIT0:$ionisationTXT0";
 
 	// Release Input - INVERT
-	$ionisationBIT1 = nbit(hexdec($ionisation), 1);
+	$ionisationBIT1 = (hexdec($ionisationbits) >> 1) & 1;
 	if ($ionisationBIT1 == 0) {$ionisationTXT1 = "Closed";}
 	elseif ($ionisationBIT1 == 1) {$ionisationTXT1 = "Open";}
 	else {$ionisationTXT1 = "UNKNOWN";}
 	$release_input = "$ionisationBIT1:$ionisationTXT1";
 
 	// Ionisation
-	$ionisationBIT2 = nbit(hexdec($ionisation), 2);
+	$ionisationBIT2 = (hexdec($ionisationbits) >> 2) & 1;
 	if ($ionisationBIT2 == 0) {$ionisationTXT2 = "No";}
 	elseif ($ionisationBIT2 == 1) {$ionisationTXT2 = "Yes";}
 	else {$ionisationTXT2 = "UNKNOWN";}
 	$ionisation = "$ionisationBIT2:$ionisationTXT2";
 
 	// Flow Switch for detecting DHW
-	$ionisationBIT3 = nbit(hexdec($ionisation), 3);
+	$ionisationBIT3 = (hexdec($ionisationbits) >> 3) & 1;
 	if ($ionisationBIT3 == 0) {$ionisationTXT3 = "Open";}
 	elseif ($ionisationBIT3 == 1) {$ionisationTXT3 = "Closed";}
 	else {$ionisationTXT3 = "UNKNOWN";}
 	$flowswitch_dhw = "$ionisationBIT3:$ionisationTXT3";
 
 	// Min. Gas Pressure
-	$ionisationBIT5 = nbit(hexdec($ionisation), 5);
+	$ionisationBIT5 = (hexdec($ionisationbits) >> 5) & 1;
 	if ($ionisationBIT5 == 0) {$ionisationTXT5 = "Open";}
 	elseif ($ionisationBIT5 == 1) {$ionisationTXT5 = "Closed";}
 	else {$ionisationTXT5 = "UNKNOWN";}
 	$min_gas_pressure = "$ionisationBIT5:$ionisationTXT5";
 
 	// CH Enable
-	$ionisationBIT6 = nbit(hexdec($ionisation), 6);
+	$ionisationBIT6 = (hexdec($ionisationbits) >> 6) & 1;
 	if ($ionisationBIT6 == 0) {$ionisationTXT6 = "No";}
 	elseif ($ionisationBIT6 == 1) {$ionisationTXT6 = "Yes";}
 	else {$ionisationTXT6 = "UNKNOWN";}
 	$ch_enabled = "$ionisationBIT6:$ionisationTXT6";
 
 	// DHW Enable
-	$ionisationBIT7 = nbit(hexdec($ionisation), 7);
+	$ionisationBIT7 = (hexdec($ionisationbits) >> 7) & 1;
 	if ($ionisationBIT7 == 0) {$ionisationTXT2 = "No";}
 	elseif ($ionisationBIT7 == 1) {$ionisationTXT7 = "Yes";}
 	$dhw_enabled = "$ionisationBIT7:$ionisationTXT7";
 
 	// Gas valve - INVERT
-	$gasvalveBIT0 = nbit(hexdec($valves), 0);
-	if ($gasvalveBIT0 == 0) {$gasvalveTXT0 = "Open";}
-	elseif ($gasvalveBIT0 == 1) {$gasvalveTXT0 = "Closed";}
-	$gasvalve = "$gasvalveBIT0:$gasvalveTXT0";
+	$valveBIT0 = (hexdec($valvesbits) >> 0) & 1;
+	if ($valveBIT0 == 0) {$valveTXT0 = "Open";}
+	elseif ($valveBIT0 == 1) {$valveTXT0 = "Closed";}
+	$gasvalve = "$valveBIT0:$valveTXT0";
 
 	// Ignition
-	$ignitionBIT2 = nbit(hexdec($valves), 2);
-	if ($ignitionBIT2 == 0) {$ignitionTXT2 = "Off";}
-	elseif ($ignitionBIT2 == 1) {$ignitionTXT2 = "On";}
-	$ignition = "$ignitionBIT2:$ignitionTXT2";
+	$valveBIT2 = (hexdec($valvesbits) >> 2) & 1;
+	if ($valveBIT2 == 0) {$valveTXT2 = "Off";}
+	elseif ($valveBIT2 == 1) {$valveTXT2 = "On";}
+	$ignition = "$valveBIT2:$valveTXT2";
 
 	// 3-way valve
-	$threewayvalveBIT3 = nbit(hexdec($valves), 3);
-	if ($threewayvalveBIT3 == 0) {$threewayvalveTXT3 = "CH";}
-	elseif ($threewayvalveBIT3 == 1) {$threewayvalveTXT3 = "DHW";}
-	$threewayvalve = "$threewayvalveBIT3:$threewayvalveTXT3";
+	$valveBIT3 = (hexdec($valvesbits) >> 3) & 1;
+	if ($valveBIT3 == 0) {$valveTXT3 = "CH";}
+	elseif ($valveBIT3 == 1) {$valveTXT3 = "DHW";}
+	$threewayvalve = "$valveBIT3:$valveTXT3";
 
 	// External 3-way valve
-	$threewayvalveBIT4 = nbit(hexdec($valves), 4);
-	if ($threewayvalveBIT4 == 0) {$threewayvalveTXT4 = "Open";}
-	elseif ($threewayvalveBIT4 == 1) {$threewayvalveTXT4 = "Closed";}
-	$threewayvalve_external = "$threewayvalveBIT4:$threewayvalveTXT4";
+	$valveBIT4 = (hexdec($valvesbits) >> 4) & 1;
+	if ($valveBIT4 == 0) {$valveTXT4 = "Open";}
+	elseif ($valveBIT4 == 1) {$valveTXT4 = "Closed";}
+	$threewayvalve_external = "$valveBIT4:$valveTXT4";
 
 	// External Gas valve
-	$gasvalveBIT6 = nbit(hexdec($valves), 6);
-	if ($gasvalveBIT6 == 0) {$gasvalveTXT6 = "Closed";}
-	elseif ($gasvalveBIT6 == 1) {$gasvalveTXT6 = "Open";}
-	$gasvalve_external = "$gasvalveBIT6:$gasvalveTXT6";
+	$valveBIT6 = (hexdec($valvesbits) >> 6) & 1;
+	if ($valveBIT6 == 0) {$valveTXT6 = "Open";}
+	elseif ($valveBIT6 == 1) {$valveTXT6 = "Closed";}
+	$gasvalve_external = "$valveBIT6:$valveTXT6";
 
 	// Pump
-	$pumpBIT0 = nbit(hexdec($pump), 0);
+	$pumpBIT0 = (hexdec($pumpbits) >> 0) & 1;
 	if ($pumpBIT0 == 0) {$pumpTXT0 = "Off";}
 	elseif ($pumpBIT0 == 1) {$pumpTXT0 = "On";}
 	$pump = "$pumpBIT0:$pumpTXT0";
 
 	// Calorifier Pump
-	$pumpBIT1 = nbit(hexdec($pump), 1);
+	$pumpBIT1 = (hexdec($pumpbits) >> 1) & 1;
 	if ($pumpBIT1 == 0) {$pumpTXT1 = "Open";}
 	elseif ($pumpBIT1 == 1) {$pumpTXT1 = "Closed";}
 	$calorifier_pump = "$pumpBIT1:$pumpTXT1";
 
 	// External CH Pump
-	$pumpBIT2 = nbit(hexdec($pump), 2);
+	$pumpBIT2 = (hexdec($pumpbits) >> 2) & 1;
 	if ($pumpBIT2 == 0) {$pumpTXT2 = "Off";}
 	elseif ($pumpBIT2 == 1) {$pumpTXT2 = "On";}
 	$ch_pump_external = "$pumpBIT2:$pumpTXT2";
 
 	// Status report
-	$pumpBIT4 = nbit(hexdec($pump), 4);
+	$pumpBIT4 = (hexdec($pumpbits) >> 4) & 1;
 	if ($pumpBIT4 == 0) {$pumpTXT4 = "Open";}
 	elseif ($pumpBIT4 == 1) {$pumpTXT4 = "Closed";}
 	$status_report = "$pumpBIT4:$pumpTXT4";
 
 	// Opentherm Smart Power
-	$pumpBIT7 = nbit(hexdec($pump), 7);
+	$pumpBIT7 = (hexdec($pumpbits) >> 7) & 1;
 	if ($pumpBIT7 == 0) {$pumpTXT7 = "Off";}
 	elseif ($pumpBIT7 == 1) {$pumpTXT7 = "On";}
 	$opentherm_smartpower = "$pumpBIT7:$pumpTXT7";
+	
+	// HRU Active
+	$hruBIT1 = (hexdec($hruactivebits) >> 1) & 1;
+	if ($hruBIT1 == 0) {$hruTXT1 = "Open";}
+	elseif ($hruBIT1 == 1) {$hruTXT1 = "Closed";}
+	$hru_active = "$hruBIT1:$hruTXT1";
 	// END translate 'bits' to useful stuff
 
 	// Mapping of Status & Sub-Status values
@@ -397,7 +405,7 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	elseif ($substate == 34) {$substate = "34:Gradient control level 2";}
 	elseif ($substate == 35) {$substate = "35:Gradient control level 3";}
 	elseif ($substate == 36) {$substate = "36:Flame protection";}
-	elseif ($substate == 37) {$substate = "37:Stabilization time";}
+	elseif ($substate == 37) {$substate = "37:Stabilisation time";}
 	elseif ($substate == 38) {$substate = "38:Cold start";}
 	elseif ($substate == 39) {$substate = "39:Limited power Tfg";}
 	elseif ($substate == 40) {$substate = "40:Burner stop";}
@@ -512,13 +520,16 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	// END mapping of Status, Sub-Status, Lockout & Blocking values
 
 	// START Display Sample Data as Captured
-	echo "Sample Data Received: " . date_format($date, 'Y-m-d H:i:s') . "$newline";
-	echo str_repeat("=", 80) . "$newline";
+	echo "Sample Data Received: " . date_format($date, 'Y-m-d H:i:s') . $newline;
+	echo str_repeat("=", 80) . $newline;
 	echo "Flow Temperature: $flowtemperature$deg_symbol$newline";
 	echo "Return Temperature: $returntemperature$deg_symbol$newline";
-	echo "DHW-in Temperature: $dhwintemperature$deg_symbol$newline";	
-	echo "Calorifier Temperature: $calorifiertemperature$deg_symbol$newline";	
-	echo "Outside Temperature: $outsidetemperature$deg_symbol$newline";	
+	if ($dhwintemperature != "Open") {echo "DHW-in Temperature: $dhwintemperature$deg_symbol$newline";}
+	else {echo "DHW-in Temperature: $dhwintemperature$newline";}
+	if ($calorifiertemperature != "Open") {echo "Calorifier Temperature: $calorifiertemperature$deg_symbol$newline";}
+	else {echo "Calorifier Temperature: $calorifiertemperature$newline";}
+	if ($outsidetemperature != "Open") {echo "Outside Temperature: $outsidetemperature$deg_symbol$newline";}
+	else {echo "Outside Temperature: $outsidetemperature$newline";}
 	echo "Control Temperature: $controltemperature$deg_symbol$newline";
 	echo "Internal Setpoint: $internalsetpoint$deg_symbol$newline";
 	echo "CH Setpoint: $chsetpoint$deg_symbol$newline";
@@ -526,8 +537,9 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	echo "Room Temperature: $roomtemperature$deg_symbol$newline";
 	echo "Room Temp. Setpoint: $thermostat$deg_symbol$newline";
 	echo "Boiler Control Temperature: $boilerctrltemperature$deg_symbol$newline";
-	echo "Solar Temperature: $solartemperature$deg_symbol$newline"; 
-	echo "$newline";
+	if ($solartemperature != "Open") {echo "Solar Temperature: $solartemperature$deg_symbol$newline";}
+	else {echo "Solar Temperature: $solartemperature$newline";}
+	echo $newline;
 	echo "Fan Speed setpoint: $fanspeedsetpoint"."rpm$newline";
 	echo "Fan Speed: $fanspeed"."rpm$newline";
 	echo "Ionisation Current: $ionisationcurrent"."μA$newline";
@@ -537,22 +549,22 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	echo "Desired Max.Power from controller: $requiredoutput"."%$newline";
 	echo "Output: $availablepower"."%$newline";
 	echo "Actual Power from boiler: $actualpower"."%$newline";
-	echo "$newline";
-	echo "Valve Flags: 0"."$gasvalveBIT6"."0"."$threewayvalveBIT4$threewayvalveBIT3$ignitionBIT2"."0"."$gasvalveBIT0$newline";
+	echo $newline;
+	echo "Valve Flags: "."$valvesbitsbin$newline";
 	echo "Gas Valve[0]: $gasvalve$newline";
 	echo "Ignition[2]: $ignition$newline";
 	echo "3-Way Valve[3]: $threewayvalve$newline";
 	echo "External 3-Way Valve[4]: $threewayvalve_external$newline";
 	echo "External Gas Valve[6]: $gasvalve_external$newline";
-	echo "$newline";
-	echo "Pump Flags: $pumpBIT7"."00"."$pumpBIT4"."0"."$pumpBIT2$pumpBIT1$pumpBIT0$newline";
+	echo $newline;
+	echo "Pump Flags: $pumpbitsbin$newline";
 	echo "Pump[0]: $pump$newline";
 	echo "Calorifier Pump[1]: $calorifier_pump$newline";
 	echo "External CH Pump[2]: $ch_pump_external$newline";
 	echo "Status Report[4]: $status_report$newline";
 	echo "Opentherm Smart Power[7]: $opentherm_smartpower$newline";
-	echo "$newline";
-	echo "Input Flags: $ionisationBIT7$ionisationBIT6$ionisationBIT5"."0"."$ionisationBIT3$ionisationBIT2$ionisationBIT1$ionisationBIT0$newline";
+	echo $newline;
+	echo "Input Flags: $ionisationbitsbin$newline";
 	echo "Shut down Input[0]: $shutdown_input$newline";
 	echo "Release Input[1]: $release_input$newline";
 	echo "Ionisation[2]: $ionisation$newline";
@@ -560,8 +572,8 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	echo "Minimum Gas Pressure[5]: $min_gas_pressure$newline";
 	echo "CH Enable[6]: $ch_enabled$newline";
 	echo "DHW Enable[7]: $dhw_enabled$newline";
-	echo "$newline";
-	echo "Heat Request Flags: $heatrequestBIT7$heatrequestBIT6$heatrequestBIT5$heatrequestBIT4$heatrequestBIT3$heatrequestBIT2$heatrequestBIT1$heatrequestBIT0$newline";	
+	echo $newline;
+	echo "Heat Request Flags: $heatrequestbitsbin$newline";	
 	echo "Mod.controller Connected[0]: $mod_ctl_connected$newline";
 	echo "Heat Demand from Modulating Controller[1]: $heatdemand_mod_ctl$newline";
 	echo "Heat Demand from ON/OFF controller[2]: $heatdemand_onoff_ctl$newline";
@@ -570,13 +582,16 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	echo "DHW Blocking[5]: $dhw_blocking$newline";
 	echo "Heat Demand from Anti Legionella[6]: $anti_legionella$newline";
 	echo "Heat Demand from DHW[7]: $dhw_heat_demand$newline";
-	echo "$newline";
+	echo $newline;
+	echo "HRU Flags: $hruactivebitsbin$newline";
+	echo "HRU Active: $hru_active$newline";
+	echo $newline;
 	echo "Combined State/Sub-State: $state$newline";
-	echo "$newline";
+	echo $newline;
 	echo "Lockout/Blocking: $lock_block$newline";
-	echo "Flame is: $flame - $ch_onoff - $dhw_onoff$newline";
 	echo "Boiler fault: $fault$newline";
-	echo str_repeat("=", 80) . "$newline";
+	echo "Flame is: $flame - $ch_onoff - $dhw_onoff$newline";
+	echo str_repeat("=", 80) . $newline;
 	// END Display Sample Data as Captured
 
 	// Update Domoticz Devices with collected values
@@ -616,6 +631,7 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$ch_onoffIDX = $ini_array['ch_onoffIDX'];
 	$dhw_onoffIDX = $ini_array['dhw_onoffIDX'];
 	$stateIDX = $ini_array['stateIDX'];
+	$hruIDX = $ini_array['hruIDX'];
 	// END Device ID's
 
 	// Set variables for cURL updates & call udevice function to update
@@ -707,7 +723,7 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 				$DOMOgas = udevice($gasIDX, 0, $gasvalve, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			}
-	
+
 		$DOMOionisation_array = array_lookup($parsed_json, $ionisationIDX, $DOMOType);
 		if ($DOMOionisation_array != $ionisation)
 			{
@@ -720,7 +736,7 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 				$DOMOionisation = udevice($ionisationIDX, 0, $ionisation, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			}
-	
+
 		$DOMOpump_array = array_lookup($parsed_json, $pumpIDX, $DOMOType);
 		if ($DOMOpump_array != $pump)
 			{
@@ -746,7 +762,7 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 				$DOMOthreewayvalve = udevice($threewayvalveIDX, 2, $threewayvalve, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);				
 				}
 			}
-	
+
 		$DOMOdhwrequest_array = array_lookup($parsed_json, $dhwrequestIDX, $DOMOType);
 		if ($DOMOdhwrequest_array != $dhw_heat_demand)
 			{
@@ -763,7 +779,7 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 		$DOMOdhweco_array = array_lookup($parsed_json, $dhwecoIDX, $DOMOType);
 		if ($DOMOdhweco_array != $dhw_eco)
 			{
-			if (heatrequest4 != "1:No")
+			if ($heatrequest4 != "1:No")
 				{
 				$DOMOdhweco = udevice($dhwecoIDX, 1, $dhw_eco, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
@@ -841,8 +857,22 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 				$DOMOfault_alert = udevice($fault_alertIDX, $fault_flag, str_replace(' ', '%20', $lock_block), $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			}
+		
+		$DOMOhru_array = array_lookup($parsed_json, $hruIDX, $DOMOType);
+		if ($DOMOhru_array != $hru_active)
+			{
+			if ($hru_active != "1:Closed")
+				{
+				$DOMOhru = udevice($hruIDX, 0, $hru_active, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				}
+			else
+				{
+				$DOMOhru = udevice($hruIDX, 0, $hru_active, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				}
+			}
+
 		echo "Update All: Domoticz Update:$DOMOUpdate Update All:$DOMOUpdateAll$newline";
-		echo str_repeat("=", 80) . "$newline";
+		echo str_repeat("=", 80) . $newline;
 		}
 	else
 		{
@@ -1074,8 +1104,22 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 				$DOMOfault_alert = udevice($fault_alertIDX, $fault_flag, str_replace(' ', '%20', $lock_block), $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			}
+		
+		$DOMOhru_array = array_lookup($parsed_json, $hruIDX, $DOMOType);
+		if ($DOMOhru_array != $hru_active)
+			{
+			if ($hru_active != "1:Closed")
+				{
+				$DOMOhru = udevice($hruIDX, 0, $hru_active, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				}
+			else
+				{
+				$DOMOhru = udevice($hruIDX, 0, $hru_active, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				}
+			}
+
 		echo "Update Changes Only: Domoticz Update:$DOMOUpdate Update All:$DOMOUpdateAll$newline";
-		echo str_repeat("=", 80) . "$newline";
+		echo str_repeat("=", 80) . $newline;
 		}
 		// END set variables for cURL updates
 	}
