@@ -33,9 +33,6 @@ $echo_flag = "1";
 $newline = "<br />";
 $phpver = phpversion();
 
-$remeha_id1 = hex2bin($ini_array['remeha_id1']);
-$remeha_id2 = hex2bin($ini_array['remeha_id2']);
-$remeha_id3 = hex2bin($ini_array['remeha_id3']);
 $remeha_param1 = hex2bin($ini_array['remeha_param1']);
 $remeha_param2 = hex2bin($ini_array['remeha_param2']);
 $remeha_param3 = hex2bin($ini_array['remeha_param3']);
@@ -58,28 +55,6 @@ else
 	conditional_echo("Connected to $ESPIPAddress:$ESPPort$newline", $echo_flag);
 	conditional_echo("Sending request...$newline", $echo_flag);
 	
-	// ID Data Collection
-	fwrite($fp,$remeha_id1, 10);
-	$data_id1 = "";
-	$data_id1 = bin2hex(fread($fp, 148));
-	$data_id1U = strtoupper($data_id1);
-	conditional_echo("ID-01 read: $data_id1U$newline", $echo_flag);
-	usleep($nanosleeptime);
-
-	fwrite($fp,$remeha_id2, 10);
-	$data_id2 = "";
-	$data_id2 = bin2hex(fread($fp, 52));
-	$data_id2U = strtoupper($data_id2);
-	conditional_echo("ID-02 read: $data_id2U$newline", $echo_flag);
-	usleep($nanosleeptime);
-
-	fwrite($fp,$remeha_id3, 10);
-	$data_id3 = "";
-	$data_id3 = bin2hex(fread($fp, 52));
-	$data_id3U = strtoupper($data_id3);
-	conditional_echo("ID-03 read: $data_id3U$newline", $echo_flag);
-	usleep($nanosleeptime);
-
 	// Parameter Data collection
 	fwrite($fp,$remeha_param1, 10);
 	$data_param1 = "";
