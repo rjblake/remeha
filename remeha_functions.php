@@ -1,6 +1,6 @@
 <?php
 // Uncomment to report Errors for Debug purposes
-// error_reporting(E_ALL);
+error_reporting(E_ALL);
 
 // Function to lookup Domoticz Values from an array
 //
@@ -9,7 +9,6 @@ function array_lookup($parsed_json, $DOMOIDX, $DOMOType)
 	$parsed_json_result = $parsed_json['result'];
 	$key = array_search($DOMOIDX, array_column($parsed_json_result, 'idx'));
 	$DOMO_array = $parsed_json['result'][$key];
-	// echo "DOMOType: $DOMOType :";
 	$array_val = $DOMO_array[$DOMOType];
 	return $array_val;
 }
@@ -55,12 +54,10 @@ function nbit($number, $n)
 
 // Function to debug BITs
 //
-function showbits($val, $byte)
+function showbits($val, $newline)	//where $val=HEX number e.g. 'C2' - no 0x prefix
 {
-// Show workings of BITS
 	$valDEC = hexdec($val);
-	$valBIN = base_convert($val, 16, 2);
-	$valBIN = sprintf( "%08d", $valBIN);
+	$valBIN = sprintf( "%08d", base_convert($val, 16, 2));
 
 	$valBITx0 = ($valDEC & (1<<0));
 	$valBITx1 = ($valDEC & (1<<1));
@@ -70,6 +67,7 @@ function showbits($val, $byte)
 	$valBITx5 = ($valDEC & (1<<5));
 	$valBITx6 = ($valDEC & (1<<6));
 	$valBITx7 = ($valDEC & (1<<7));
+/*	
 	$nbitX0 = nbit($valDEC, 0);
 	$nbitX1 = nbit($valDEC, 1);
 	$nbitX2 = nbit($valDEC, 2);
@@ -78,43 +76,50 @@ function showbits($val, $byte)
 	$nbitX5 = nbit($valDEC, 5);
 	$nbitX6 = nbit($valDEC, 6);
 	$nbitX7 = nbit($valDEC, 7);
+*/
+	$nbitX0 = ($valDEC >> 0) & 1;
+	$nbitX1 = ($valDEC >> 1) & 1;
+	$nbitX2 = ($valDEC >> 2) & 1;
+	$nbitX3 = ($valDEC >> 3) & 1;
+	$nbitX4 = ($valDEC >> 4) & 1;
+	$nbitX5 = ($valDEC >> 5) & 1;
+	$nbitX6 = ($valDEC >> 6) & 1;
+	$nbitX7 = ($valDEC >> 7) & 1;
 
 	echo str_repeat("=", 40) . "$newline";
-	echo "Content & Value of BITS: $byte$newline";
+	echo "Content & Value of BITS: $val$newline";
 	echo "Value (HEX, Dec, Bin): $val, $valDEC, $valBIN$newline";
 	echo str_repeat("=", 40) . "$newline";
-	echo "nBit0: 	$nbitX0" .' '."| Bit0: 	$valBITx0$newline";
-	echo "nBit1: 	$nbitX1" .' '."| Bit1: 	$valBITx1$newline";
-	echo "nBit2: 	$nbitX2" .' '."| Bit2: 	$valBITx2$newline";
-	echo "nBit3: 	$nbitX3" .' '."| Bit3: 	$valBITx3$newline";
-	echo "nBit4: 	$nbitX4" .' '."| Bit4: 	$valBITx4$newline";
-	echo "nBit5: 	$nbitX5" .' '."| Bit5: 	$valBITx5$newline";
-	echo "nBit6: 	$nbitX6" .' '."| Bit6: 	$valBITx6$newline";
-	echo "nBit7: 	$nbitX7" .' '."| Bit7: 	$valBITx7$newline";
+	echo "nBit0: 	$nbitX0 | Bit0: 	$valBITx0$newline";
+	echo "nBit1: 	$nbitX1 | Bit1: 	$valBITx1$newline";
+	echo "nBit2: 	$nbitX2 | Bit2: 	$valBITx2$newline";
+	echo "nBit3: 	$nbitX3 | Bit3: 	$valBITx3$newline";
+	echo "nBit4: 	$nbitX4 | Bit4: 	$valBITx4$newline";
+	echo "nBit5: 	$nbitX5 | Bit5: 	$valBITx5$newline";
+	echo "nBit6: 	$nbitX6 | Bit6: 	$valBITx6$newline";
+	echo "nBit7: 	$nbitX7 | Bit7: 	$valBITx7$newline";
 	echo str_repeat("=", 40) . "$newline";
-// END workings of BITS
 }
 
-// ...and the CRC16 Modbus Check to check data integrity
+// CRC16 Modbus Check to check data integrity
 //
 function crc16_modbus($msg)
 {
 	$data = pack('H*',$msg);
 	$crc = 0xFFFF;
 	for ($i = 0; $i < strlen($data); $i++)
-	{
+		{
 		$crc ^=ord($data[$i]);
 		for ($j = 8; $j !=0; $j--)
-		{
-			if (($crc & 0x0001) !=0)
 			{
+			if (($crc & 0x0001) !=0)
+				{
 				$crc >>= 1;
 				$crc ^= 0xA001;
-			}
+				}
 			else $crc >>= 1;
 			}
 		}
-
 	$crc_semi_inverted = sprintf('%04x', $crc);
 	$crc_modbus = substr($crc_semi_inverted, 2, 2).substr($crc_semi_inverted, 0, 2);
 	$crc_modbus = hexdec($crc_modbus);
@@ -135,38 +140,54 @@ function hex2str($hex)
 function conditional_echo($string,$echo_flag)
 {
 	if ($echo_flag == 1)
-	{
+		{
 		echo $string;
-	}
+		}
 }
 
 // Function to connect to ESP8266
 //
 function connect_to_esp($ESPIPAddress, $ESPPort, $retries, $newline)
 {
+	// Write the contents to the file
+	$ini_array = parse_ini_file("remeha.ini");
+	$fsocktimeout = $ini_array['fsocktimeout'];
+	$log_data = $ini_array['log_data'];
+	$path = $ini_array['path_to_logs'];
+	$filename = $ini_array['communications_log'];
+	$file = "$path$filename";
+	date_default_timezone_set('Europe/Amsterdam');
+	$date = date_create();
+
 	$connected = false;
 	$retry = 0;
 	
 	// Keep looping until connected or met no. of retries if $retries is not zero
 	while (!$connected && ($retries == 0 || ($retries > 0 && $retry < $retries)))
-	{
-		// try connecting to the ESP8266
-		$fp = fsockopen($ESPIPAddress, $ESPPort, $errno, $errstr, 5);
-		
+		{
+		$fp = fsockopen($ESPIPAddress, $ESPPort, $errno, $errstr, $fsocktimeout);
 		if ($fp)
-		{
+			{
+			if ($log_data == 2)
+				{
+				$datatowrite = date_format($date, 'Y-m-d H:i:s') . " | Connected to ".$ESPIPAddress.":".$ESPPort."\n";
+				file_put_contents($file, $datatowrite, FILE_APPEND);
+				}
+
 			return $fp;
-			// connection was successful
-		}
+			}
 		else
-		{
-			echo "Unable to establish connection to ".$ESPIPAddress.":".$ESPPort." - Error:$errno:".$errstr."$newline";
-			echo "Trying to reset ESP8266 @ $ESPIPAddress $newline";
+			{
+			if (($log_data == 1) || ($log_data == 2))
+				{
+				$datatowrite = date_format($date, 'Y-m-d H:i:s') . " | Unable to establish connection to ".$ESPIPAddress.":".$ESPPort.". Error:$errno:".$errstr." Retry:".$retry."\n";
+				file_put_contents($file, $datatowrite, FILE_APPEND);
+				}
 			file_get_contents("http://$ESPIPAddress/log/reset");
-		}
+			}
 		sleep(10); // sleep for 10 seconds before trying again
 		$retry++;
-	}
+		}
 	return $fp;
 }
 
@@ -184,45 +205,25 @@ function hexdecs($hex)
 function cls()
 {
 	if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
-	{
+		{
     		echo '\r\n';
-	} 
+		}
 	elseif (strtoupper(substr(PHP_OS, 0, 3)) === 'LIN')
-	{
+		{
 		array_map(create_function('$a', 'print chr($a);'), array(27, 91, 72, 27, 91, 50, 74));
-	}
+		}
 	elseif (strtoupper(substr(PHP_OS, 0, 3)) === 'DAR')
-	{
+		{
 		array_map(create_function('$a', 'print chr($a);'), array(27, 91, 72, 27, 91, 50, 74));
-	}
+		}
 
 }
-// If PHP5 < V5.5 or not PHP7.0, this function does not exist, so create an 'array_column() function
-//
-if (! function_exists('array_column')) {
-    function array_column(array $input, $columnKey, $indexKey = null) {
-        $array = array();
-        foreach ($input as $value) {
-            if ( !array_key_exists($columnKey, $value)) {
-                trigger_error("Key \"$columnKey\" does not exist in array");
-                return false;
-            }
-            if (is_null($indexKey)) {
-                $array[] = $value[$columnKey];
-            }
-            else {
-                if ( !array_key_exists($indexKey, $value)) {
-                    trigger_error("Key \"$indexKey\" does not exist in array");
-                    return false;
-                }
-                if ( ! is_scalar($value[$indexKey])) {
-                    trigger_error("Key \"$indexKey\" does not contain scalar value");
-                    return false;
-                }
-                $array[$value[$indexKey]] = $value[$columnKey];
-            }
-        }
-        return $array;
-    }
-}
+
+if(!function_exists("array_column"))
+	{
+	function array_column($array,$column_name)
+		{
+		return array_map(function($element) use($column_name){return $element[$column_name];}, $array);
+		}
+	}
 ?>
