@@ -142,7 +142,7 @@ else
 
 function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4, $data_param5, $data_param6, $data_param7, $data_param8, $echo_flag, $newline)
 {
-// Manipulate data & Do a CRC Check	
+	// Manipulate data & Do a CRC Check	
 	$decode_param1 = str_split($data_param1, 2);
 	$hexstr_param1 = str_split($data_param1, 52);
 	$hexstrPayload_param1 = substr($data_param1, 2, 44);
@@ -193,6 +193,7 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 
 	// Concatenate Parameter data to work with
 	$concat_parameter = substr($hexstrPayload_param1, 12, 32).substr($hexstrPayload_param2, 12, 32).substr($hexstrPayload_param3, 12, 32).substr($hexstrPayload_param4, 12, 32).substr($hexstrPayload_param5, 12, 32).substr($hexstrPayload_param6, 12, 32).substr($hexstrPayload_param7, 12, 32).substr($hexstrPayload_param8, 12, 32);
+	echo "Parameters used: 02".strtoupper($hexstrPayload_param1.substr($hexstrPayload_param2, 12, 32).substr($hexstrPayload_param3, 12, 32).substr($hexstrPayload_param4, 12, 32).substr($hexstrPayload_param5, 12, 32).substr($hexstrPayload_param6, 12, 32).substr($hexstrPayload_param7, 12, 32).substr($hexstrPayload_param8, 12, 32)).$newline;
 	$decode_parameter = str_split($concat_parameter, 2);		
 
 	// Write the contents to the file
@@ -229,7 +230,7 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 		return;		# Don't continue with updating Parameter data
 		}
 
-// Parameter Info
+	// Parameter Info
 	$tflow_setpoint = hexdec($decode_parameter["0"]);
 	if (($tflow_setpoint < 20) || ($tflow_setpoint > 90)) { $tflow_setpoint = "ERROR";}
 	else { $tflow_setpoint = $tflow_setpoint;}
@@ -250,8 +251,8 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 	elseif ($comfort_dhw == 2) { $comfort_dhw = "2:Controller";}
 
 	$anticipation = hexdec($decode_parameter["4"]);
-	if ($anticipation == 0) { $anticipation = "0:no";}
-	elseif ($anticipation == 1) { $anticipation = "1:yes";}
+	if ($anticipation == 0) { $anticipation = "0:No";}
+	elseif ($anticipation == 1) { $anticipation = "1:Yes";}
 
 	$displaymode = hexdec($decode_parameter["5"]);
 	if ($displaymode == 0) { $displaymode = "0:Simple";}
@@ -320,8 +321,8 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 	else { $temp_frostprotect = $temp_frostprotect ;}
 
 	$anti_legionella = hexdec($decode_parameter["30"]);
-	if ($anti_legionella == 0) { $anti_legionella = "0:no";}
-	elseif ($anti_legionella == 1) { $anti_legionella = "1:yes";}
+	if ($anti_legionella == 0) { $anti_legionella = "0:No";}
+	elseif ($anti_legionella == 1) { $anti_legionella = "1:Yes";}
 	elseif ($anti_legionella == 2) { $anti_legionella = "2:Controller";}
 		
 	$setpointraise_DHW = hexdec($decode_parameter["31"]);
@@ -364,16 +365,16 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 	elseif ($status_report == 1) { $status_report = "1:Failure signal";}
 	
 	$min_gaspressure = hexdec($decode_parameter["40"]);
-	if ($min_gaspressure == 0) { $min_gaspressure = "0:no";}
-	elseif ($min_gaspressure == 1) { $min_gaspressure = "1:yes";}
+	if ($min_gaspressure == 0) { $min_gaspressure = "0:No";}
+	elseif ($min_gaspressure == 1) { $min_gaspressure = "1:Yes";}
 
 	$HRUactive = hexdec($decode_parameter["41"]);
-	if ($HRUactive == 0) { $HRUactive = "0:no";}
-	elseif ($HRUactive == 1) { $HRUactive = "1:yes";}
+	if ($HRUactive == 0) { $HRUactive = "0:No";}
+	elseif ($HRUactive == 1) { $HRUactive = "1:Yes";}
 
 	$mains_LN = hexdec($decode_parameter["42"]);
-	if ($mains_LN == 0) { $mains_LN = "0:no";}
-	elseif ($mains_LN == 1) { $mains_LN = "1:yes";}
+	if ($mains_LN == 0) { $mains_LN = "0:No";}
+	elseif ($mains_LN == 1) { $mains_LN = "1:Yes";}
 
 	$service_notification = hexdec($decode_parameter["43"]);
 	if ($service_notification == 0) { $service_notification = "0:Off";}
@@ -655,9 +656,9 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 	$display_LED_blue = hexdec($decode_parameter["124"]);
 	if (($display_LED_blue < 0) || ($display_LED_blue > 255)) { $display_LED_blue = "ERROR";}
 	else { $display_LED_blue = $display_LED_blue ;}
-// END Parameters Info
+	// END Parameters Info
 
-// START Display Parameters
+	// START Display Parameters
 	echo "Parameters Received: " . date_format($date, 'Y-m-d H:i:s') . "$newline";
 	echo str_repeat("=", 80) . "$newline";
 	echo "Max. Flow Temp. during CH mode: $tflow_setpoint$deg_symbol$newline";
@@ -711,7 +712,7 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 	echo "Pump control, control range dT for CH: $pump_dTset_CH$deg_symbol $newline";
 	echo "Pump control, CH on start heatdemand: $pump_CH_start %$newline";
 	echo "Start hysteresis for CH: $hysteresis_CH$deg_symbol $newline";
-	echo "Stabilization time after burner start CH: $stabilisation_time seconds$newline";
+	echo "Stabilisation time after burner start CH: $stabilisation_time seconds$newline";
 	echo "Minimum burner anti-cycle time: $min_burner_off minutes$newline";
 	echo "Maximum burner anti-cycle time: $max_burner_off minutes$newline";
 	echo "Absolute max fan speed CH: $max_fanspeed_CH rpm$newline";
@@ -765,6 +766,6 @@ function param_data_dump($data_param1, $data_param2, $data_param3, $data_param4,
 	echo "PWM value green for normal display backlight: $display_LED_green $newline";
 	echo "PWM value blue for normal display backlight: $display_LED_blue $newline";
 	echo str_repeat("=", 80) . "$newline";
-// END Display Parameters
+	// END Display Parameters
 }
 ?>
