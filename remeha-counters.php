@@ -264,31 +264,32 @@ function counter_data_dump($data_counter1, $data_counter2, $data_counter3, $data
 		If ($DOMOthreewayvalvehours_array != $threewayvalvehours) {$DOMOthreewayvalvehours = udevice($threewayvalvehoursIDX, 0, $threewayvalvehours, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
 
 		$DOMOhours_ch_dhw_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $hours_ch_dhwIDX, $DOMOType));
-		If ($DOMOhours_ch_dhw != $hours_ch_dhw) {$DOMOhours_ch_dhw = udevice($hours_ch_dhwIDX, 0, $hours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		If ($DOMOhours_ch_dhw_array != $hours_ch_dhw) {$DOMOhours_ch_dhw = udevice($hours_ch_dhwIDX, 0, $hours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
 
 		$DOMOhours_dhw_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $hours_dhwIDX, $DOMOType));
 		If ($DOMOhours_dhw_array != $hours_dhw) {$DOMOhours_dhw = udevice($hours_dhwIDX, 0, $hours_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
 		
 		$DOMOpowerhours_ch_dhw_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $powerhours_ch_dhwIDX, $DOMOType));
-		If ($DOMOpowerhours_ch_dhw != $powerhours_ch_dhw) {$DOMOpowerhours_ch_dhw = udevice($powerhours_ch_dhwIDX, 0, $powerhours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		If ($DOMOpowerhours_ch_dhw_array != $powerhours_ch_dhw) {$DOMOpowerhours_ch_dhw = udevice($powerhours_ch_dhwIDX, 0, $powerhours_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
 
 		$DOMOpumpstarts_ch_dhw_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $pumpstarts_ch_dhwIDX, $DOMOType));
 		If ($DOMOpumpstarts_ch_dhw_array != $pumpstarts_ch_dhw) {$DOMOpumpstarts_ch_dhw = udevice($pumpstarts_ch_dhwIDX, 0, $pumpstarts_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
 
 		$DOMOnr_threewayvalvecycles_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $nr_threewayvalvecyclesIDX, $DOMOType));
-		If ($DOMOnr_threewayvalvecycles != $nr_threewayvalvecycles) {$DOMOnr_threewayvalvecycles = udevice($nr_threewayvalvecyclesIDX, 0, $nr_threewayvalvecycles, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		If ($DOMOnr_threewayvalvecycles_array != $nr_threewayvalvecycles) {$DOMOnr_threewayvalvecycles = udevice($nr_threewayvalvecyclesIDX, 0, $nr_threewayvalvecycles, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
 
 		$DOMOburnerstarts_dhw_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $burnerstarts_dhwIDX, $DOMOType));
-		If ($DOMOburnerstarts_dhw != $burnerstarts_dhw) {$DOMOburnerstarts_dhw = udevice($burnerstarts_dhwIDX, 0, $burnerstarts_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		If ($DOMOburnerstarts_dhw_array != $burnerstarts_dhw) {$DOMOburnerstarts_dhw = udevice($burnerstarts_dhwIDX, 0, $burnerstarts_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
 
 		$DOMOtot_burnerstarts_ch_dhw_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $tot_burnerstarts_ch_dhwIDX, $DOMOType));
-		If ($DOMOtot_burnerstarts_ch_dhw != $tot_burnerstarts_ch_dhw) {$DOMOtot_burnerstarts_ch_dhw = udevice($tot_burnerstarts_ch_dhwIDX, 0, $tot_burnerstarts_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		If ($DOMOtot_burnerstarts_ch_dhw_array != $tot_burnerstarts_ch_dhw) {$DOMOtot_burnerstarts_ch_dhw = udevice($tot_burnerstarts_ch_dhwIDX, 0, $tot_burnerstarts_ch_dhw, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
 
 		$DOMOfailed_burnerstarts_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $failed_burnerstartsIDX, $DOMOType));
-		If ($DOMOfailed_burnerstarts != $failed_burnerstarts) {$DOMOfailed_burnerstarts = udevice($failed_burnerstartsIDX, 0, $failed_burnerstarts, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		If ($DOMOfailed_burnerstarts_array != $failed_burnerstarts) {$DOMOfailed_burnerstarts = udevice($failed_burnerstartsIDX, 0, $failed_burnerstarts, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
 
 		$DOMOnr_flame_loss_array = preg_replace('/[^0-9.]+/', '', array_lookup($parsed_json, $nr_flame_lossIDX, $DOMOType));
-		If ($DOMOnr_flame_loss != $nr_flame_loss) {$DOMOnr_flame_loss = udevice($nr_flame_lossIDX, 0, $nr_flame_loss, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		If ($DOMOnr_flame_loss_array != $nr_flame_loss) {$DOMOnr_flame_loss = udevice($nr_flame_lossIDX, 0, $nr_flame_loss, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);}
+		
 		echo "Update Changes Only: Domoticz Update:$DOMOUpdate Update All:$DOMOUpdateAll$newline";
 		echo str_repeat("=", 80) . "$newline";
 		}
