@@ -1,6 +1,6 @@
 <?php
 // Uncomment to report Errors for Debug purposes
-error_reporting(E_ALL);
+// error_reporting(E_ALL);
 $phpver = phpversion();
 require('remeha_functions.php');
 $sample_cycle = 0;
