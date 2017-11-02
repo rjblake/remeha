@@ -177,7 +177,7 @@ function  identification_data_dump($data_id1, $data_id2, $data_id3, $echo_flag, 
 	// END identifications Info
 
 	// START Display identifications
-	echo "Identifications Received: " . date_format($date, 'Y-m-d H:i:s') . "$newline";
+	echo "Identification Data Received: " . date_format($date, 'Y-m-d H:i:s') . "$newline";
 	echo str_repeat("=", 80) . "$newline";
 	echo "Boiler Name: $boiler_name$newline";
 	echo "dF-Code: $df_code$newline";
