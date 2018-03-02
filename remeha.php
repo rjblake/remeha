@@ -245,9 +245,13 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	
 	// Heat demand from mod. controller
 	$heatrequestBIT1 = (hexdec($heatrequestbits) >> 1) & 1;
-	if ($heatrequestBIT1 == 0) {$heatrequestTXT1 = "No"; $ch_onoff = "Central Heating is: Off";}
-	elseif ($heatrequestBIT1 == 1) {$heatrequestTXT1 = "Yes"; $ch_onoff = "Central Heating is: On";}
+	if ($heatrequestBIT1 == 0) {$heatrequestTXT1 = "No";}
+	elseif ($heatrequestBIT1 == 1) {$heatrequestTXT1 = "Yes";}
 	$heatdemand_mod_ctl = "$heatrequestBIT1:$heatrequestTXT1";
+
+	// Heat demand from mod. or on/off controller
+	if ($heatrequestBIT1 == 1 OR $heatrequestBIT2 == 1 ) {$ch_onoff = "Central Heating is: On";}
+	elseif ($heatrequestBIT1 == 0 AND $heatrequestBIT2 == 0 ) {$ch_onoff = "Central Heating is: Off";}
 
 	// Heat demand from on/off controller
 	$heatrequestBIT2 = (hexdec($heatrequestbits) >> 2) & 1;
@@ -668,6 +672,7 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	$availablepowerIDX = $ini_array['availablepowerIDX'];
 	$actualpowerIDX = $ini_array['actualpowerIDX'];
 	$modulationdemandIDX = $ini_array['modulationdemandIDX'];
+	$onoffdemandIDX = $ini_array['onoffdemandIDX'];
 	$ignitionIDX = $ini_array['ignitionIDX'];
 	$gasIDX = $ini_array['gasIDX'];
 	$ionisationIDX = $ini_array['ionisationIDX'];
@@ -748,6 +753,22 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 				}
 			}
 	
+		//Added On/off demand	
+		$DOMOonoffdemand_array = array_lookup($parsed_json, $onoffdemandIDX, $DOMOType);			
+		if ($DOMOonoffdemand_array != $heatdemand_onoff_ctl)
+			{
+			if ($heatdemand_onoff_ctl != "0:No")
+				{
+				$DOMOonoffdemand = udevice($onoffdemandIDX, 2, $heatdemand_onoff_ctl, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				}
+			else
+				{
+				$DOMOonoffdemand = udevice($onoffdemandIDX, 0, $heatdemand_onoff_ctl, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				}
+			}
+			$DOMOonoffdemand_array = array_lookup($parsed_json, $onoffdemandIDX, $DOMOType);
+		
+		
 		$DOMOignition_array = array_lookup($parsed_json, $ignitionIDX, $DOMOType);
 		if ($DOMOignition_array != $ignition)
 			{
@@ -980,7 +1001,21 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 				$DOMOmodulationdemand = udevice($modulationdemandIDX, 0, $heatdemand_mod_ctl, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
 				}
 			}
-	
+
+		$DOMOonoffdemand_array = array_lookup($parsed_json, $onoffdemandIDX, $DOMOType);
+		if ($DOMOonoffdemand_array != $heatdemand_onoff_ctl)
+			{
+			if ($heatdemand_onoff_ctl != "0:No")
+				{
+				$DOMOonoffdemand = udevice($onoffdemandIDX, 2, $heatdemand_onoff_ctl, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				}
+			else
+				{
+				$DOMOonoffdemand = udevice($onoffdemandIDX, 0, $heatdemand_onoff_ctl, $DOMOIPAddress, $DOMOPort, $Username, $Password, $DOMOUpdate);
+				}
+			}
+		
+		
 		$DOMOignition_array = array_lookup($parsed_json, $ignitionIDX, $DOMOType);
 		if ($DOMOignition_array != $ignition)
 			{
