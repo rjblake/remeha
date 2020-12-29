@@ -464,18 +464,13 @@ function sample_data_dump($data_sample, $echo_flag, $newline)
 	elseif ($substate == 43) {$substate = "43:Close flue gas valve";}
 	elseif ($substate == 44) {$substate = "44:Stop fan";}
 	elseif ($substate == 45) {$substate = "45:Close external gas valve";}
-	elseif ($substate == 46) {$substate = "46:-";}
-	elseif ($substate == 47) {$substate = "47:-";}
-	elseif ($substate == 48) {$substate = "48:-";}
-	elseif ($substate == 49) {$substate = "49:-";}
-	elseif ($substate == 39) {$substate = "39:Heat exchanger protection";}
 	elseif ($substate == 60) {$substate = "60:Pump post running";}
 	elseif ($substate == 61) {$substate = "61:Pump stop";}
 	elseif ($substate == 62) {$substate = "62:Close hydraulic valve";}
 	elseif ($substate == 63) {$substate = "63:Start anti-cycle timer";}
 	elseif ($substate == 255) {$substate = "255:Reset wait time";}
 	elseif ($substate == 999) {$substate = "999:Unkown Sub-State";}
-	else {$substate = "Unknown Sub-State";}
+	else {$substate = "Unknown Sub-State-I am lost";}
 	// Combine State & Sub-State to a single variable
 	$state = "$state/$substate";
 
