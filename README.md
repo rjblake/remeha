@@ -9,7 +9,7 @@ Remeha >>>>>>>>>> ESP8266
 3. Pin3 (TX).........>RX
 4. Pin4 (VDC)........>VCC+
 
-The ESP8266 is running and has been tested with the ESP-Link firmware/software loaded (also on GitHub)
+The ESP8266 is running and has been tested with the ESP-Link firmware/software loaded (also on GitHub - here: https://github.com/jeelabs/esp-link/releases/tag/V3.0.14)
 
 Currently this is a 'read only' script and provides the following functionality:
 
